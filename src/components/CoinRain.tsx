@@ -15,19 +15,19 @@ interface Coin {
 // Coin configurations based on your images
 const coinConfigs = [
   {
-    image: '/src/assets/da96e76291dadfbf968703182c2fcd821df9ece1.png',
+    image: '/assets/da96e76291dadfbf968703182c2fcd821df9ece1.png',
     direction: -30, // +30 degrees from vertical
   },
   {
-    image: '/src/assets/thumb_Coins 5 copy.png', 
+    image: '/assets/thumb_Coins 5 copy.png', 
     direction: -30, // +30 degrees from vertical
   },
   {
-    image: '/src/assets/thumb_Coins 2.png',
+    image: '/assets/thumb_Coins 2.png',
     direction: 30, // -30 degrees from vertical
   },
   {
-    image: '/src/assets/thumb_Coins 4 copy.png',
+    image: '/assets/thumb_Coins 4 copy.png',
     direction: 0, // straight down (plumb)
   }
 ];
