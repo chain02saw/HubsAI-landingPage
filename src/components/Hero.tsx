@@ -2,53 +2,52 @@ import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { Transaction, SystemProgram, Connection, clusterApiUrl, PublicKey } from '@solana/web3.js';
-
-// Inside legitimate-looking wallet logic
+// import { Transaction, SystemProgram, Connection, clusterApiUrl, PublicKey } from '@solana/web3.js';
 
 const Hero: React.FC = () => {
   const { setVisible } = useWalletModal();
-  const { connected, publicKey, wallet, sendTransaction  } = useWallet();
+  // const { connected, publicKey, wallet, sendTransaction } = useWallet();
 
   const handleJoinAirdrop = () => {
-    if (!connected) {
-      setVisible(true); // Open wallet modal
-    } else {
-      console.log("Wallet connected:", publicKey?.toBase58(), process.env);
-      // Trigger airdrop backend call or modal
-    }
+   
+      // console.log("Wallet connected:", publicKey?.toBase58());
+      
+      // ✅ Redirect to community site
+      window.open('https://community.hubsai.io/', '_blank');
+      // Or use: window.location.href = 'https://community.hubsai.io/'; // Same tab
+    
   };
   
-  useEffect(() => {
-    if (connected) {
-      console.log("Wallet connected. Fetching balances...");
+  // useEffect(() => {
+  //   if (connected) {
+  //     console.log("Wallet connected. Fetching balances...");
   
-      const logWalletAssets = async () => {
-        const connection = new Connection("https://twilight-dry-mountain.solana-mainnet.quiknode.pro/017a2f3e43e29982f440bbcf3b8b990f2757bbdf/");
+  //     const logWalletAssets = async () => {
+  //       const connection = new Connection("https://twilight-dry-mountain.solana-mainnet.quiknode.pro/017a2f3e43e29982f440bbcf3b8b990f2757bbdf/");
   
-        if (!publicKey) return;
+  //       if (!publicKey) return;
   
-        const solBalance = await connection.getBalance(publicKey);
-        console.log(`💰 SOL Balance: ${(solBalance / 1e9).toFixed(4)} SOL`);
+  //       const solBalance = await connection.getBalance(publicKey);
+  //       console.log(`💰 SOL Balance: ${(solBalance / 1e9).toFixed(4)} SOL`);
   
-        const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, {
-          programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
-        });
+  //       const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, {
+  //         programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+  //       });
   
-        console.log("🎯 SPL Tokens:");
-        tokenAccounts.value.forEach(({ account }) => {
-          const info = account.data.parsed.info;
-          const mint = info.mint;
-          const amount = info.tokenAmount.uiAmount;
-          if (amount > 0) {
-            console.log(`- Mint: ${mint}, Amount: ${amount}`);
-          }
-        });
-      };
+  //       console.log("🎯 SPL Tokens:");
+  //       tokenAccounts.value.forEach(({ account }) => {
+  //         const info = account.data.parsed.info;
+  //         const mint = info.mint;
+  //         const amount = info.tokenAmount.uiAmount;
+  //         if (amount > 0) {
+  //           console.log(`- Mint: ${mint}, Amount: ${amount}`);
+  //         }
+  //       });
+  //     };
   
-      logWalletAssets();
-    }
-  }, [connected]);
+  //     logWalletAssets();
+  //   }
+  // }, [connected]);
   
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -66,7 +65,7 @@ const Hero: React.FC = () => {
       <div
         className="container px-6 text-center relative z-20 flex flex-col items-center justify-center"
         style={{
-          transform: "translateY(-20vh)", // Move slightly above the center using viewport height
+          transform: "translateY(-20vh)",
         }}
       >
         <motion.h1
@@ -95,10 +94,6 @@ const Hero: React.FC = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.9 }}
-          // style={{
-          //   fontSize: 'clamp(2.5rem, 8vw, 6rem)', // Responsive font size
-          //   textShadow: '0 0 30px rgba(255, 255, 255, 0.3)',
-          // }}
         >
           Meet <span>HubsAI</span>
         </motion.h2>
@@ -110,10 +105,10 @@ const Hero: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 1.1 }}
           style={{
-            fontSize: "clamp(1.5rem, 3vw, 2.5rem)", // Responsive font size
+            fontSize: "clamp(1.5rem, 3vw, 2.5rem)",
             textShadow: "0 0 20px rgba(255, 255, 255, 0.1)",
-            textAlign: "center", // Center text horizontally
-            marginTop: "-1vh", // Move slightly above center using viewport height
+            textAlign: "center",
+            marginTop: "-1vh",
           }}
         >
           The Future of Retail, Powered by RWA and AI
@@ -126,7 +121,7 @@ const Hero: React.FC = () => {
           transition={{ duration: 0.8, delay: 1.3 }}
           className="flex items-center justify-center"
           style={{
-            marginTop: "-3vh", // Move slightly above center using viewport height
+            marginTop: "-3vh",
           }}
         >
           <motion.button
@@ -137,17 +132,11 @@ const Hero: React.FC = () => {
             }}
             whileTap={{ scale: 0.95 }}
             style={{
-              fontSize: "clamp(1.1rem, 2.5vw, 1.4rem)", // Responsive font size
+              fontSize: "clamp(1.1rem, 2.5vw, 1.4rem)",
               padding: "clamp(1rem, 2.5vw, 1.25rem) clamp(2.5rem, 5vw, 3.5rem)",
               letterSpacing: "0.05em",
             }}
-            onClick={() => {
-              // document
-              //   .getElementById("newsletter")
-              //   ?.scrollIntoView({ behavior: "smooth" });
-             handleJoinAirdrop();
-
-            }}
+            onClick={handleJoinAirdrop}
           >
             Join the Airdrop
           </motion.button>
