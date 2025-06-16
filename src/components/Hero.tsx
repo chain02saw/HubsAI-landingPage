@@ -14,7 +14,7 @@ const Hero: React.FC = () => {
     if (!connected) {
       setVisible(true); // Open wallet modal
     } else {
-      console.log("Wallet connected:", publicKey?.toBase58());
+      console.log("Wallet connected:", publicKey?.toBase58(), process.env);
       // Trigger airdrop backend call or modal
     }
   };
