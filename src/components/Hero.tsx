@@ -1,11 +1,11 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { motion } from "framer-motion";
-import { useWalletModal } from "@solana/wallet-adapter-react-ui";
-import { useWallet } from "@solana/wallet-adapter-react";
+// import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+// import { useWallet } from "@solana/wallet-adapter-react";
 // import { Transaction, SystemProgram, Connection, clusterApiUrl, PublicKey } from '@solana/web3.js';
 
 const Hero: React.FC = () => {
-  const { setVisible } = useWalletModal();
+  // const { setVisible } = useWalletModal();
   // const { connected, publicKey, wallet, sendTransaction } = useWallet();
 
   const handleJoinAirdrop = () => {
