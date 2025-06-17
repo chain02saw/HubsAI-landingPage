@@ -7,7 +7,7 @@ import {
   SolflareWalletAdapter,
   LedgerWalletAdapter,
   AlphaWalletAdapter,
-  UnsafeBurnerWalletAdapter, // For testing
+//   UnsafeBurnerWalletAdapter, // For testing
 } from '@solana/wallet-adapter-wallets';
 import { clusterApiUrl } from '@solana/web3.js';
 

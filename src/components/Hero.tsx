@@ -6,7 +6,7 @@ import { Connection, PublicKey } from '@solana/web3.js';
 import { useAuth } from './AuthContext';
 
 const Hero: React.FC = () => {
-  const { setVisible } = useWalletModal();
+  // const { setVisible } = useWalletModal();
   const { connected, publicKey, wallet } = useWallet();
   const { user, claimWalletAddress } = useAuth();
 

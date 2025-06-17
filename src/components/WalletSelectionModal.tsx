@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from './AuthContext';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useWalletModal } from '@solana/wallet-adapter-react-ui';
-import { Connection, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { Connection } from '@solana/web3.js';
 
 interface WalletSelectionModalProps {
   isOpen: boolean;
@@ -11,13 +11,13 @@ interface WalletSelectionModalProps {
 }
 
 const WalletSelectionModal: React.FC<WalletSelectionModalProps> = ({ isOpen, onClose }) => {
-  const { user, createClaimWallet, claimWalletAddress, setWalletSetupComplete } = useAuth();
-  const { publicKey, connected, wallet, connect } = useWallet();
+  const {  createClaimWallet, claimWalletAddress, setWalletSetupComplete } = useAuth();
+  const { publicKey, connected, wallet } = useWallet();
   const { setVisible } = useWalletModal();
   const [loading, setLoading] = useState(false);
   const [claimWalletCreated, setClaimWalletCreated] = useState(false);
 
-  const connection = new Connection("https://twilight-dry-mountain.solana-mainnet.quiknode.pro/017a2f3e43e29982f440bbcf3b8b990f2757bbdf/");
+  // const connection = new Connection("https://twilight-dry-mountain.solana-mainnet.quiknode.pro/017a2f3e43e29982f440bbcf3b8b990f2757bbdf/");
 
   useEffect(() => {
     if (connected && publicKey) {
