@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from './AuthContext';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useWalletModal } from '@solana/wallet-adapter-react-ui';
-import { Connection } from '@solana/web3.js';
+// import { Connection } from '@solana/web3.js';
 
 interface WalletSelectionModalProps {
   isOpen: boolean;

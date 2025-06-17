@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { motion } from "framer-motion";
-import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+// import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Connection, PublicKey } from '@solana/web3.js';
 import { useAuth } from './AuthContext';
