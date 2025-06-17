@@ -1,11 +1,16 @@
 // import { StrictMode } from "react";
+import './polyfills';
+
+import React from 'react'
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.tsx";
-import WalletContextProvider from "./context/WalletProvider.tsx";
+// import WalletContextProvider from "./context/WalletProvider.tsx";
 
 createRoot(document.getElementById("root")!).render(
-  <WalletContextProvider>
+  // <WalletContextProvider>
+  <React.StrictMode>
     <App />
-  </WalletContextProvider>
+    </React.StrictMode>
+  // </WalletContextProvider>
 );
