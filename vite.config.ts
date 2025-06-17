@@ -16,17 +16,14 @@ export default defineConfig({
   optimizeDeps: {
     include: ['buffer'],
     esbuildOptions: {
-      // Node.js global to browser globalThis
       define: {
         global: 'globalThis',
       },
-      // Enable esbuild polyfill plugins
-      plugins: [
-        NodeGlobalsPolyfillPlugin({
-          buffer: true,
-        }),
-        NodeModulesPolyfillPlugin(),
-      ],
+    },
+  },
+  build: {
+    rollupOptions: {
+      external: [],
     },
   },
 })
