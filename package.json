@@ -19,7 +19,9 @@
     "buffer": "^6.0.3",
     "framer-motion": "^11.0.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "three": "^0.177.0",
+    "vanta": "^0.5.24"
   },
   "devDependencies": {
     "@eslint/js": "^9.28.0",

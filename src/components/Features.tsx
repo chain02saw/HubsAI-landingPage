@@ -1,43 +1,85 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
+import * as THREE from 'three';
 
 const features = [
   {
-    icon: '🛍️',
-    title: 'Real Products',
-    description: 'Authentic retail items with verified provenance and instant delivery'
+    icon: '💰',
+    title: 'Earn Yield on Everyday Purchases',
+    description: 'Turn purchases into rewards through tokenized ownership and programmable perks.'
   },
   {
-    icon: '🎁',
-    title: 'Real Rewards',
-    description: 'Earn tokens and exclusive benefits for every purchase and interaction'
+    icon: '🛠️',
+    title: 'Empower Brands with Web3 Tools',
+    description: 'Enable airdrops, token communities, and new ways to engage loyal customers.'
   },
   {
     icon: '⚡',
-    title: 'Real Fast',
-    description: 'Lightning-quick transactions powered by advanced AI and blockchain'
+    title: 'Instant Transferability',
+    description: 'Sell or gift your product instantly through secure digital ownership.'
   },
   {
-    icon: '🤖',
-    title: 'AI-Powered',
-    description: 'Smart recommendations and personalized shopping experiences'
+    icon: '📦',
+    title: 'Trackable Product Lifecycle',
+    description: 'See who owned it, when, and how it performed—all backed by on-chain history.'
   },
   {
-    icon: '🔗',
-    title: 'RWA Integration',
-    description: 'Real-world assets tokenized for seamless digital ownership'
+    icon: '🎯',
+    title: 'Programmable Rewards',
+    description: 'Unlock exclusive benefits, loyalty points, or resale royalties with every token.'
   },
   {
-    icon: '🌐',
-    title: 'Web3 Native',
-    description: 'Built for the decentralized future of commerce and retail'
+    icon: '🤝',
+    title: 'Built for Community Ownership',
+    description: 'Tokens connect users, brands, and products into powerful ecosystems of value.'
   }
 ];
 
 const Features: React.FC = () => {
+  const vantaRef = useRef(null);
+  const [vantaEffect, setVantaEffect] = useState(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !vantaEffect) {
+      (window as any).THREE = THREE;
+
+      import('vanta/dist/vanta.net.min').then((vantaModule) => {
+        const VANTA = vantaModule.default;
+        if (VANTA) {
+          setVantaEffect(
+            VANTA({
+              el: vantaRef.current,
+              THREE: THREE,
+              mouseControls: false,
+              touchControls: false,
+              gyroControls: false,
+              minHeight: 200.0,
+              minWidth: 200.0,
+              scale: 1.0,
+              scaleMobile: 1.0,
+              color: 0x1a1f2e,          // very dark blue lines
+              backgroundColor: 0x0f172a, // dark background
+              points: 6.0,
+              maxDistance: 18.0,
+              spacing: 20.0,
+              showDots: false
+            })
+          );
+        }
+      });
+    }
+
+    return () => {
+      if (vantaEffect) vantaEffect.destroy();
+    };
+  }, [vantaEffect]);
+
   return (
-    <section className="py-20 bg-gradient-to-b from-dark-950 to-dark-900">
-      <div className="container mx-auto px-6">
+    <section ref={vantaRef} className="relative py-20 overflow-hidden text-white">
+      {/* Overlay to fade background animation */}
+      <div className="absolute inset-0 bg-dark-950 opacity-70 z-[1] pointer-events-none" />
+
+      <div className="relative z-10 container mx-auto px-6">
         <motion.div 
           className="text-center mb-16"
           initial={{ opacity: 0, y: 50 }}
@@ -45,11 +87,11 @@ const Features: React.FC = () => {
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-3xl md:text-5xl font-display font-bold text-white mb-6">
-            Why Choose <span className="glow-text">HubsAI</span>?
+          <h2 className="text-5xl md:text-6xl font-bold uppercase text-white mb-6">
+            Tokenizing Real-World Products to Change the World
           </h2>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            Experience the next generation of retail with our revolutionary platform
+          <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto">
+            We turn real-world products into digital assets that deliver value beyond the sale.
           </p>
         </motion.div>
         
@@ -57,7 +99,7 @@ const Features: React.FC = () => {
           {features.map((feature, index) => (
             <motion.div
               key={index}
-              className="glass rounded-xl p-6 hover:bg-white/10 transition-all duration-300"
+              className="glass rounded-2xl p-6 hover:bg-white/10 transition-all duration-300"
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
@@ -68,8 +110,8 @@ const Features: React.FC = () => {
               }}
             >
               <div className="text-4xl mb-4">{feature.icon}</div>
-              <h3 className="text-xl font-semibold text-white mb-3">{feature.title}</h3>
-              <p className="text-gray-300 leading-relaxed">{feature.description}</p>
+              <h3 className="text-xl font-semibold text-white mb-2">{feature.title}</h3>
+              <p className="text-gray-300 text-sm">{feature.description}</p>
             </motion.div>
           ))}
         </div>
