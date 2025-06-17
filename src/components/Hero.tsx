@@ -1,53 +1,56 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { motion } from "framer-motion";
-// import { useWalletModal } from "@solana/wallet-adapter-react-ui";
-// import { useWallet } from "@solana/wallet-adapter-react";
-// import { Transaction, SystemProgram, Connection, clusterApiUrl, PublicKey } from '@solana/web3.js';
+import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { Connection, PublicKey } from '@solana/web3.js';
+import { useAuth } from './AuthContext';
 
 const Hero: React.FC = () => {
-  // const { setVisible } = useWalletModal();
-  // const { connected, publicKey, wallet, sendTransaction } = useWallet();
+  const { setVisible } = useWalletModal();
+  const { connected, publicKey, wallet } = useWallet();
+  const { user, claimWalletAddress } = useAuth();
 
   const handleJoinAirdrop = () => {
-   
-      // console.log("Wallet connected:", publicKey?.toBase58());
-      
-      // ✅ Redirect to community site
-      window.open('https://community.hubsai.io/', '_blank');
-      // Or use: window.location.href = 'https://community.hubsai.io/'; // Same tab
+    if (connected && publicKey) {
+      console.log("Wallet connected:", publicKey.toBase58());
+    } else if (claimWalletAddress) {
+      console.log("Claim wallet available:", claimWalletAddress);
+    }
     
+    // ✅ Redirect to community site
+    window.open('https://community.hubsai.io/', '_blank');
   };
   
-  // useEffect(() => {
-  //   if (connected) {
-  //     console.log("Wallet connected. Fetching balances...");
+  useEffect(() => {
+    if (connected && publicKey) {
+      console.log("Wallet connected. Fetching balances...");
   
-  //     const logWalletAssets = async () => {
-  //       const connection = new Connection("https://twilight-dry-mountain.solana-mainnet.quiknode.pro/017a2f3e43e29982f440bbcf3b8b990f2757bbdf/");
+      const logWalletAssets = async () => {
+        const connection = new Connection("https://twilight-dry-mountain.solana-mainnet.quiknode.pro/017a2f3e43e29982f440bbcf3b8b990f2757bbdf/");
   
-  //       if (!publicKey) return;
+        if (!publicKey) return;
   
-  //       const solBalance = await connection.getBalance(publicKey);
-  //       console.log(`💰 SOL Balance: ${(solBalance / 1e9).toFixed(4)} SOL`);
+        const solBalance = await connection.getBalance(publicKey);
+        console.log(`💰 SOL Balance: ${(solBalance / 1e9).toFixed(4)} SOL`);
   
-  //       const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, {
-  //         programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
-  //       });
+        const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, {
+          programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+        });
   
-  //       console.log("🎯 SPL Tokens:");
-  //       tokenAccounts.value.forEach(({ account }) => {
-  //         const info = account.data.parsed.info;
-  //         const mint = info.mint;
-  //         const amount = info.tokenAmount.uiAmount;
-  //         if (amount > 0) {
-  //           console.log(`- Mint: ${mint}, Amount: ${amount}`);
-  //         }
-  //       });
-  //     };
+        console.log("🎯 SPL Tokens:");
+        tokenAccounts.value.forEach(({ account }) => {
+          const info = account.data.parsed.info;
+          const mint = info.mint;
+          const amount = info.tokenAmount.uiAmount;
+          if (amount > 0) {
+            console.log(`- Mint: ${mint}, Amount: ${amount}`);
+          }
+        });
+      };
   
-  //     logWalletAssets();
-  //   }
-  // }, [connected]);
+      logWalletAssets();
+    }
+  }, [connected, publicKey]);
   
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -113,6 +116,26 @@ const Hero: React.FC = () => {
         >
           The Future of Retail, Powered by RWA and AI
         </motion.p>
+
+        {/* Wallet Status (if logged in) */}
+        {user && (connected || claimWalletAddress) && (
+          <motion.div
+            className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-xl"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 1.2 }}
+          >
+            <p className="text-green-400 text-sm">
+              ✅ Wallet Connected: {
+                connected && publicKey 
+                  ? `${wallet?.adapter.name} (${publicKey.toBase58().slice(0, 8)}...)`
+                  : claimWalletAddress 
+                    ? `Claim Wallet (${claimWalletAddress.slice(0, 8)}...)`
+                    : ''
+              }
+            </p>
+          </motion.div>
+        )}
 
         {/* CTA Button */}
         <motion.div

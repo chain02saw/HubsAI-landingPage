@@ -1,22 +1,65 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import LoginModal from './LoginModal'; // Import the LoginModal
+import { useAuth } from './AuthContext';
+import LoginModal from './LoginModal';
+import WalletSelectionModal from './WalletSelectionModal';
 
 const Header: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [loginModalOpen, setLoginModalOpen] = useState(false); // Add login modal state
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [walletSelectionOpen, setWalletSelectionOpen] = useState(false);
+  const { user, loading, hasCompletedWalletSetup, signOut } = useAuth();
+  
+  // Auto-open wallet selection for new users who haven't completed setup
+  useEffect(() => {
+    if (user && !hasCompletedWalletSetup && !walletSelectionOpen && !loginModalOpen) {
+      console.log('New user detected, opening wallet selection...');
+      setTimeout(() => {
+        setWalletSelectionOpen(true);
+      }, 500);
+    }
+  }, [user, hasCompletedWalletSetup, walletSelectionOpen, loginModalOpen]);
   
   const handleNavClick = (label: string) => {
     if (label === 'Profile') {
-      setLoginModalOpen(true); // Open login modal for Profile
+      if (user) {
+        // If user is logged in but hasn't completed wallet setup, show wallet selection
+        if (!hasCompletedWalletSetup) {
+          setWalletSelectionOpen(true);
+        } else {
+          // Show dashboard/profile (you can implement this later)
+          console.log('Show user dashboard');
+        }
+      } else {
+        setLoginModalOpen(true);
+      }
     } else if (label === 'Docs') {
-      // Add docs navigation logic here
       console.log('Navigate to docs');
     } else if (label === 'Speak with Tyler') {
-      // Add contact/speak with Tyler logic here
       console.log('Navigate to contact Tyler');
     }
-    setMenuOpen(false); // Close mobile menu if open
+    setMenuOpen(false);
+  };
+
+  const getProfileButtonText = () => {
+    if (loading) return 'Loading...';
+    if (user) {
+      if (!hasCompletedWalletSetup) {
+        return 'Connect Wallet';
+      }
+      return user.name || 'Dashboard';
+    }
+    return 'Profile';
+  };
+
+  const getProfileButtonStyle = () => {
+    if (user && !hasCompletedWalletSetup) {
+      return 'bg-yellow-500/20 border-yellow-400/50 hover:bg-yellow-500/30';
+    }
+    if (user && hasCompletedWalletSetup) {
+      return 'bg-primary-500/20 border-primary-400/50 hover:bg-primary-500/30';
+    }
+    return 'bg-teal-500/10 border-teal-300/50 hover:bg-gray-900';
   };
   
   return (
@@ -40,14 +83,22 @@ const Header: React.FC = () => {
 
             {/* Navigation Buttons */}
             <div className="hidden md:flex items-center space-x-3">
-              {['Docs', 'Profile', 'Speak with Tyler'].map((label, i) => (
+              {['Docs', getProfileButtonText(), 'Speak with Tyler'].map((label, i) => (
                 <motion.button
-                  key={label}
-                  onClick={() => handleNavClick(label)}
-                  className="bg-teal-500/10 px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base rounded-xl text-white border border-teal-300/50 hover:bg-gray-900 backdrop-blur-sm transition-all duration-300"               
-                  whileHover={{ scale: 1.05 }}
+                  key={`${label}-${i}`}
+                  onClick={() => handleNavClick(label.includes('Dashboard') || label.includes('Connect') ? 'Profile' : label)}
+                  disabled={loading}
+                  className={`px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base rounded-xl text-white border transition-all duration-300 backdrop-blur-sm ${getProfileButtonStyle()} ${
+                    loading ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                  whileHover={!loading ? { scale: 1.05 } : {}}
                   transition={{ type: 'spring', stiffness: 400, damping: 10 + i * 10 }}
                 >
+                  {user && (label.includes('Dashboard') || label.includes('Connect')) && (
+                    <span className={`w-2 h-2 rounded-full inline-block mr-2 ${
+                      hasCompletedWalletSetup ? 'bg-green-500' : 'bg-yellow-500'
+                    }`}></span>
+                  )}
                   {label}
                 </motion.button>
               ))}
@@ -81,11 +132,14 @@ const Header: React.FC = () => {
                   height: { duration: 0.4 }
                 }}
               >
-                {['Docs', 'Profile', 'Speak with Tyler'].map((label, index) => (
+                {['Docs', getProfileButtonText(), 'Speak with Tyler'].map((label, index) => (
                   <motion.button
-                    key={label}
-                    onClick={() => handleNavClick(label)}
-                    className="block w-full text-left bg-teal-500/10 px-4 py-2 text-sm rounded-xl text-white border border-teal-300/50 hover:bg-gray-900 backdrop-blur-sm transition-all duration-300"
+                    key={`mobile-${label}-${index}`}
+                    onClick={() => handleNavClick(label.includes('Dashboard') || label.includes('Connect') ? 'Profile' : label)}
+                    disabled={loading}
+                    className={`block w-full text-left px-4 py-2 text-sm rounded-xl text-white border transition-all duration-300 backdrop-blur-sm ${getProfileButtonStyle()} ${
+                      loading ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
@@ -93,22 +147,53 @@ const Header: React.FC = () => {
                       delay: index * 0.1,
                       duration: 0.3
                     }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    whileHover={!loading ? { scale: 1.02 } : {}}
+                    whileTap={!loading ? { scale: 0.98 } : {}}
                   >
+                    {user && (label.includes('Dashboard') || label.includes('Connect')) && (
+                      <span className={`w-2 h-2 rounded-full inline-block mr-2 ${
+                        hasCompletedWalletSetup ? 'bg-green-500' : 'bg-yellow-500'
+                      }`}></span>
+                    )}
                     {label}
                   </motion.button>
                 ))}
+
+                {/* Sign out option for mobile when logged in */}
+                {user && (
+                  <motion.button
+                    onClick={() => {
+                      signOut();
+                      setMenuOpen(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm rounded-xl text-red-400 hover:text-red-300 transition-colors"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ 
+                      delay: 0.3,
+                      duration: 0.3
+                    }}
+                  >
+                    Sign Out
+                  </motion.button>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
         </div>
       </motion.header>
 
-      {/* Login Modal */}
+      {/* Login Modal - No callback needed */}
       <LoginModal 
         isOpen={loginModalOpen} 
-        onClose={() => setLoginModalOpen(false)} 
+        onClose={() => setLoginModalOpen(false)}
+      />
+
+      {/* Wallet Selection Modal */}
+      <WalletSelectionModal 
+        isOpen={walletSelectionOpen} 
+        onClose={() => setWalletSelectionOpen(false)} 
       />
     </>
   );
