@@ -120,7 +120,7 @@ const Hero: React.FC = () => {
         {/* Wallet Status (if logged in) */}
         {user && (connected || claimWalletAddress) && (
           <motion.div
-            className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-xl"
+            className="mb-8 p-1 bg-green-500/10 border border-green-500/20 rounded-xl"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 1.2 }}
