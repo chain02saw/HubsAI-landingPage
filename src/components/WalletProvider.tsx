@@ -7,7 +7,7 @@ import {
   SolflareWalletAdapter,
   LedgerWalletAdapter,
   AlphaWalletAdapter,
-//   UnsafeBurnerWalletAdapter, // For testing
+  UnsafeBurnerWalletAdapter, // For testing
 } from '@solana/wallet-adapter-wallets';
 import { clusterApiUrl } from '@solana/web3.js';
 
@@ -22,9 +22,17 @@ export const SolanaWalletProvider: React.FC<SolanaWalletProviderProps> = ({ chil
   // Use mainnet
   const network = WalletAdapterNetwork.Mainnet;
   
-  // Use your custom RPC endpoint or fallback to default
+  // Use environment variable or fallback to your custom endpoint or default
   const endpoint = useMemo(() => {
-    return "https://twilight-dry-mountain.solana-mainnet.quiknode.pro/017a2f3e43e29982f440bbcf3b8b990f2757bbdf/" || clusterApiUrl(network);
+    if (process.env.REACT_APP_RPC_ENDPOINT) {
+      return process.env.REACT_APP_RPC_ENDPOINT;
+    }
+    
+    if (network === WalletAdapterNetwork.Mainnet) {
+      return "https://twilight-dry-mountain.solana-mainnet.quiknode.pro/017a2f3e43e29982f440bbcf3b8b990f2757bbdf/";
+    }
+    
+    return clusterApiUrl(network);
   }, [network]);
 
   // Configure supported wallets
