@@ -116,7 +116,7 @@ const CoinRain: React.FC = () => {
                 alt="HubsAI Coin"
                 className="w-full h-full object-contain"
                 style={{
-                  filter: 'drop-shadow(0 0 5px rgba(255, 215, 0, 0.8)) brightness(0.7) saturate(1.1)',
+                  filter: 'drop-shadow(0 0 5px rgba(255, 215, 0, 0.8)) brightness(0.8) saturate(1.1)',
                   imageRendering: 'crisp-edges',
                 }}
                 loading="lazy"

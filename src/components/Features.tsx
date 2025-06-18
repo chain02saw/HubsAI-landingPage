@@ -55,24 +55,24 @@ const orbitingCubes = Array.from({ length: 12 }, (_, i) => ({
 const Features: React.FC = () => {
   return (
     <section className="relative py-20 bg-gradient-to-b from-dark-950 via-dark-900 to-dark-950 overflow-hidden">
-      {/* Token Flow Background Animation - SHARP & CONTRASTED */}
-      <div className="absolute inset-0 opacity-80">
+      {/* Token Flow Background Animation - TONED DOWN COLORS */}
+      <div className="absolute inset-0 opacity-50">
         {/* Blockchain Grid Lines */}
         <div className="absolute inset-0">
-          {/* Smart horizontal flowing lines with pulse waves */}
+          {/* Smart horizontal flowing lines with pulse waves - SOFTER */}
           {[...Array(5)].map((_, i) => (
             <motion.div
               key={`h-${i}`}
-              className="absolute h-0.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent"
+              className="absolute h-0.5 bg-gradient-to-r from-transparent via-teal-300/60 to-transparent"
               style={{
                 top: `${20 + i * 15}%`,
                 width: '100%',
-                filter: 'drop-shadow(0 0 8px rgba(6, 182, 212, 0.8))',
+                filter: 'drop-shadow(0 0 4px rgba(20, 184, 166, 0.4))',
               }}
               animate={{
                 x: ['-100%', '100%'],
-                opacity: [0, 1, 1, 0],
-                scaleY: [1, 2, 1],
+                opacity: [0, 0.8, 0.8, 0],
+                scaleY: [1, 1.5, 1],
               }}
               transition={{
                 duration: 2.5,
@@ -83,20 +83,20 @@ const Features: React.FC = () => {
             />
           ))}
 
-          {/* Smart vertical data streams */}
+          {/* Smart vertical data streams - SOFTER */}
           {[...Array(8)].map((_, i) => (
             <motion.div
               key={`v-${i}`}
-              className="absolute w-0.5 bg-gradient-to-b from-transparent via-emerald-400 to-transparent"
+              className="absolute w-0.5 bg-gradient-to-b from-transparent via-emerald-300/50 to-transparent"
               style={{
                 left: `${10 + i * 12}%`,
                 height: '100%',
-                filter: 'drop-shadow(0 0 6px rgba(16, 185, 129, 0.9))',
+                filter: 'drop-shadow(0 0 3px rgba(16, 185, 129, 0.5))',
               }}
               animate={{
                 y: ['-100%', '100%'],
-                opacity: [0, 1, 1, 0],
-                scaleX: [1, 3, 1],
+                opacity: [0, 0.7, 0.7, 0],
+                scaleX: [1, 2, 1],
               }}
               transition={{
                 duration: 3,
@@ -112,21 +112,21 @@ const Features: React.FC = () => {
         <div className="absolute inset-0">
           {tokenNodes.map((node, i) => (
             <div key={node.id}>
-              {/* Advanced Node with Smart Pulsing */}
+              {/* Advanced Node with Smart Pulsing - SOFTER COLORS */}
               <motion.div
-                className="absolute w-5 h-5 rounded-full border-2 border-white"
+                className="absolute w-5 h-5 rounded-full border border-slate-300"
                 style={{
                   left: `${node.x}%`,
                   top: `${node.y}%`,
-                  background: 'radial-gradient(circle, #ffd700 0%, #ff6b35 50%, #004e92 100%)',
-                  filter: 'drop-shadow(0 0 15px rgba(255, 215, 0, 0.9))',
+                  background: 'radial-gradient(circle, #fbbf24 0%, #f97316 50%, #3b82f6 100%)',
+                  filter: 'drop-shadow(0 0 8px rgba(251, 191, 36, 0.5))',
                 }}
                 animate={{
-                  scale: [1, 1.6, 1.2, 1],
+                  scale: [1, 1.4, 1.1, 1],
                   boxShadow: [
-                    '0 0 15px rgba(255, 215, 0, 0.8)',
-                    '0 0 30px rgba(255, 215, 0, 1)',
-                    '0 0 15px rgba(255, 215, 0, 0.8)',
+                    '0 0 8px rgba(251, 191, 36, 0.4)',
+                    '0 0 15px rgba(251, 191, 36, 0.6)',
+                    '0 0 8px rgba(251, 191, 36, 0.4)',
                   ],
                 }}
                 transition={{
@@ -137,11 +137,11 @@ const Features: React.FC = () => {
                 }}
               />
 
-              {/* Smart Connection Web (connect to multiple nodes) */}
+              {/* Smart Connection Web - SOFTER */}
               {tokenNodes.slice(i + 1, i + 3).map((targetNode, j) => (
                 <motion.div
                   key={`connection-${i}-${j}`}
-                  className="absolute h-0.5 bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400"
+                  className="absolute h-0.5 bg-gradient-to-r from-amber-300/60 via-orange-300/60 to-red-300/50"
                   style={{
                     left: `${node.x}%`,
                     top: `${node.y}%`,
@@ -153,11 +153,11 @@ const Features: React.FC = () => {
                       targetNode.y - node.y,
                       targetNode.x - node.x
                     ) * 180 / Math.PI}deg)`,
-                    filter: 'drop-shadow(0 0 8px rgba(255, 165, 0, 0.8))',
+                    filter: 'drop-shadow(0 0 4px rgba(245, 158, 11, 0.4))',
                   }}
                   animate={{
-                    opacity: [0.3, 1, 0.3],
-                    scaleY: [1, 2, 1],
+                    opacity: [0.3, 0.7, 0.3],
+                    scaleY: [1, 1.5, 1],
                   }}
                   transition={{
                     duration: 1.8,
@@ -167,21 +167,21 @@ const Features: React.FC = () => {
                 />
               ))}
 
-              {/* Smart Data Packets with Trails */}
+              {/* Smart Data Packets with Trails - SOFTER */}
               {i < tokenNodes.length - 1 && (
                 <>
                   <motion.div
-                    className="absolute w-2 h-2 rounded-full border border-cyan-400"
+                    className="absolute w-2 h-2 rounded-full border border-slate-300"
                     style={{
                       left: `${node.x}%`,
                       top: `${node.y}%`,
-                      background: 'radial-gradient(circle, #ffffff 0%, #00d4ff 100%)',
-                      filter: 'drop-shadow(0 0 10px rgba(0, 212, 255, 0.9))',
+                      background: 'radial-gradient(circle, #f1f5f9 0%, #64748b 100%)',
+                      filter: 'drop-shadow(0 0 6px rgba(148, 163, 184, 0.6))',
                     }}
                     animate={{
                       x: `${(tokenNodes[i + 1].x - node.x) * 8}px`,
                       y: `${(tokenNodes[i + 1].y - node.y) * 4}px`,
-                      scale: [1, 1.5, 1],
+                      scale: [1, 1.3, 1],
                     }}
                     transition={{
                       duration: 1.2,
@@ -191,9 +191,9 @@ const Features: React.FC = () => {
                     }}
                   />
                   
-                  {/* Packet Trail Effect */}
+                  {/* Packet Trail Effect - SOFTER */}
                   <motion.div
-                    className="absolute w-1 h-1 bg-cyan-300 rounded-full"
+                    className="absolute w-1 h-1 bg-slate-400/60 rounded-full"
                     style={{
                       left: `${node.x}%`,
                       top: `${node.y}%`,
@@ -201,7 +201,7 @@ const Features: React.FC = () => {
                     animate={{
                       x: `${(tokenNodes[i + 1].x - node.x) * 8}px`,
                       y: `${(tokenNodes[i + 1].y - node.y) * 4}px`,
-                      opacity: [0, 1, 0],
+                      opacity: [0, 0.6, 0],
                     }}
                     transition={{
                       duration: 1.2,
@@ -215,27 +215,28 @@ const Features: React.FC = () => {
           ))}
         </div>
 
-        {/* Smart Multi-Layer Orbiting System */}
+        {/* Smart Multi-Layer Orbiting System - SOFTER COLORS */}
         <div className="absolute inset-0 flex items-center justify-center">
           {orbitingCubes.map((cube) => (
             <motion.div
               key={cube.id}
-              className="absolute border-2"
+              className="absolute border"
               style={{
                 width: `${cube.size * 2}px`,
                 height: `${cube.size * 2}px`,
                 borderRadius: cube.layer === 0 ? '50%' : '3px',
                 background: cube.layer === 0 
-                  ? 'radial-gradient(circle, #8b5cf6 0%, #3b82f6 100%)'
+                  ? 'radial-gradient(circle, #a78bfa 0%, #7dd3fc 100%)'
                   : cube.layer === 1
-                  ? 'linear-gradient(45deg, #f59e0b 0%, #ef4444 100%)'
-                  : 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)',
-                borderColor: cube.layer === 0 ? '#8b5cf6' : cube.layer === 1 ? '#f59e0b' : '#10b981',
-                filter: `drop-shadow(0 0 ${8 + cube.layer * 4}px ${
-                  cube.layer === 0 ? 'rgba(139, 92, 246, 0.8)' : 
-                  cube.layer === 1 ? 'rgba(245, 158, 11, 0.8)' : 
-                  'rgba(16, 185, 129, 0.8)'
+                  ? 'linear-gradient(45deg, #fbbf24 0%, #fb7185 100%)'
+                  : 'linear-gradient(135deg, #34d399 0%, #60a5fa 100%)',
+                borderColor: cube.layer === 0 ? '#a78bfa' : cube.layer === 1 ? '#fbbf24' : '#34d399',
+                filter: `drop-shadow(0 0 ${4 + cube.layer * 2}px ${
+                  cube.layer === 0 ? 'rgba(167, 139, 250, 0.4)' : 
+                  cube.layer === 1 ? 'rgba(251, 191, 36, 0.4)' : 
+                  'rgba(52, 211, 153, 0.4)'
                 })`,
+                opacity: 0.7,
               }}
               animate={{
                 x: [
@@ -248,7 +249,7 @@ const Features: React.FC = () => {
                 ],
                 rotateZ: cube.layer === 0 ? [0, 360] : [360, 0],
                 rotateY: [0, 180, 360],
-                scale: [1, 1.3, 1],
+                scale: [1, 1.2, 1],
               }}
               transition={{
                 duration: 4 + cube.layer,
@@ -260,7 +261,7 @@ const Features: React.FC = () => {
           ))}
         </div>
 
-        {/* Smart Token Symbols with Intelligent Movement */}
+        {/* Smart Token Symbols with Intelligent Movement - SOFTER COLORS */}
         {[...Array(10)].map((_, i) => (
           <motion.div
             key={`token-${i}`}
@@ -268,20 +269,21 @@ const Features: React.FC = () => {
             style={{
               left: `${8 + i * 9}%`,
               top: `${15 + (i % 3) * 25}%`,
-              fontSize: '20px',
-              color: i % 3 === 0 ? '#ffd700' : i % 3 === 1 ? '#ff6b35' : '#00d4ff',
-              filter: `drop-shadow(0 0 12px ${
-                i % 3 === 0 ? 'rgba(255, 215, 0, 0.9)' : 
-                i % 3 === 1 ? 'rgba(255, 107, 53, 0.9)' : 
-                'rgba(0, 212, 255, 0.9)'
+              fontSize: '18px',
+              color: i % 3 === 0 ? '#d4a574' : i % 3 === 1 ? '#e09066' : '#7db3c7',
+              filter: `drop-shadow(0 0 6px ${
+                i % 3 === 0 ? 'rgba(212, 165, 116, 0.5)' : 
+                i % 3 === 1 ? 'rgba(224, 144, 102, 0.5)' : 
+                'rgba(125, 179, 199, 0.5)'
               })`,
+              opacity: 0.8,
             }}
             animate={{
-              y: [-15, -45, -15],
-              opacity: [0.8, 1, 0.8],
+              y: [-15, -35, -15],
+              opacity: [0.6, 0.8, 0.6],
               rotateY: [0, 180, 360],
-              rotateZ: [0, 10, -10, 0],
-              scale: [1, 1.4, 1],
+              rotateZ: [0, 8, -8, 0],
+              scale: [1, 1.2, 1],
             }}
             transition={{
               duration: 2.5,
@@ -294,11 +296,11 @@ const Features: React.FC = () => {
           </motion.div>
         ))}
 
-        {/* Smart 3D Blockchain Blocks with Physics */}
+        {/* Smart 3D Blockchain Blocks with Physics - SOFTER COLORS */}
         {[...Array(8)].map((_, i) => (
           <motion.div
             key={`block-${i}`}
-            className="absolute border-2 border-white"
+            className="absolute border border-slate-300"
             style={{
               left: `${5 + i * 13}%`,
               top: `${25 + (i % 4) * 20}%`,
@@ -306,23 +308,24 @@ const Features: React.FC = () => {
               height: `${12 + (i % 3) * 4}px`,
               borderRadius: '3px',
               background: `linear-gradient(${45 + i * 30}deg, 
-                ${i % 4 === 0 ? '#3b82f6, #1d4ed8' : 
-                  i % 4 === 1 ? '#ef4444, #dc2626' :
-                  i % 4 === 2 ? '#10b981, #059669' : 
-                  '#8b5cf6, #7c3aed'})`,
-              filter: `drop-shadow(0 0 10px ${
-                i % 4 === 0 ? 'rgba(59, 130, 246, 0.8)' : 
-                i % 4 === 1 ? 'rgba(239, 68, 68, 0.8)' :
-                i % 4 === 2 ? 'rgba(16, 185, 129, 0.8)' : 
-                'rgba(139, 92, 246, 0.8)'
+                ${i % 4 === 0 ? '#7dd3fc, #60a5fa' : 
+                  i % 4 === 1 ? '#fca5a5, #f87171' :
+                  i % 4 === 2 ? '#86efac, #4ade80' : 
+                  '#c4b5fd, #a78bfa'})`,
+              filter: `drop-shadow(0 0 6px ${
+                i % 4 === 0 ? 'rgba(125, 211, 252, 0.4)' : 
+                i % 4 === 1 ? 'rgba(252, 165, 165, 0.4)' :
+                i % 4 === 2 ? 'rgba(134, 239, 172, 0.4)' : 
+                'rgba(196, 181, 253, 0.4)'
               })`,
+              opacity: 0.7,
             }}
             animate={{
               rotateX: [0, 180, 360],
               rotateY: [0, 360],
               rotateZ: [0, 180],
-              scale: [1, 1.3, 1],
-              y: [0, -20, 0],
+              scale: [1, 1.2, 1],
+              y: [0, -15, 0],
             }}
             transition={{
               duration: 3 + (i % 3),
@@ -333,7 +336,7 @@ const Features: React.FC = () => {
           />
         ))}
 
-        {/* Smart Connecting Laser Beams */}
+        {/* Smart Connecting Laser Beams - SOFTER */}
         {[...Array(4)].map((_, i) => (
           <motion.div
             key={`laser-${i}`}
@@ -342,12 +345,13 @@ const Features: React.FC = () => {
               left: `${20 + i * 20}%`,
               top: `${30 + i * 10}%`,
               width: '15%',
-              background: 'linear-gradient(90deg, transparent, #00ff88, #0088ff, transparent)',
+              background: 'linear-gradient(90deg, transparent, #7dd3fc, #60a5fa, transparent)',
               transform: `rotate(${i * 45}deg)`,
-              filter: 'drop-shadow(0 0 8px rgba(0, 255, 136, 0.9))',
+              filter: 'drop-shadow(0 0 4px rgba(125, 211, 252, 0.5))',
+              opacity: 0.6,
             }}
             animate={{
-              opacity: [0, 1, 0],
+              opacity: [0, 0.6, 0],
               scaleX: [0, 1, 0],
             }}
             transition={{
@@ -359,13 +363,14 @@ const Features: React.FC = () => {
           />
         ))}
 
-        {/* Smart Perimeter Scanning Effect */}
+        {/* Smart Perimeter Scanning Effect - SOFTER */}
         <motion.div
           className="absolute inset-0 border border-transparent"
           style={{
-            background: 'linear-gradient(90deg, transparent 0%, rgba(0, 255, 136, 0.6) 25%, rgba(0, 136, 255, 0.6) 50%, rgba(255, 68, 136, 0.6) 75%, transparent 100%)',
+            background: 'linear-gradient(90deg, transparent 0%, rgba(125, 211, 252, 0.3) 25%, rgba(96, 165, 250, 0.3) 50%, rgba(167, 139, 250, 0.3) 75%, transparent 100%)',
             backgroundSize: '200% 100%',
             borderRadius: '8px',
+            opacity: 0.6,
           }}
           animate={{
             backgroundPosition: ['-200% 0%', '200% 0%'],
@@ -377,21 +382,22 @@ const Features: React.FC = () => {
           }}
         />
 
-        {/* Smart Corner Energy Pulses */}
+        {/* Smart Corner Energy Pulses - SOFTER */}
         {[...Array(4)].map((_, i) => (
           <motion.div
             key={`corner-${i}`}
-            className="absolute w-4 h-4 border-2 border-cyan-400"
+            className="absolute w-3 h-3 border border-slate-300"
             style={{
               [i < 2 ? 'top' : 'bottom']: '10px',
               [i % 2 === 0 ? 'left' : 'right']: '10px',
               borderRadius: '50%',
-              background: 'radial-gradient(circle, #00ffff 0%, transparent 70%)',
-              filter: 'drop-shadow(0 0 15px rgba(0, 255, 255, 0.9))',
+              background: 'radial-gradient(circle, #f1f5f9 0%, transparent 70%)',
+              filter: 'drop-shadow(0 0 8px rgba(148, 163, 184, 0.5))',
+              opacity: 0.7,
             }}
             animate={{
-              scale: [1, 2, 1],
-              opacity: [0.6, 1, 0.6],
+              scale: [1, 1.5, 1],
+              opacity: [0.4, 0.7, 0.4],
               rotate: [0, 360],
             }}
             transition={{
@@ -403,8 +409,8 @@ const Features: React.FC = () => {
         ))}
       </div>
 
-      {/* Minimal overlay for maximum visibility */}
-      <div className="absolute inset-0 bg-dark-950/20" />
+      {/* Balanced overlay for comfortable viewing */}
+      <div className="absolute inset-0 bg-dark-950/40" />
 
       <div className="relative z-10 container mx-auto px-6">
         <motion.div 
