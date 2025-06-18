@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-
+import {isMobile} from 'react-device-detect';
 interface Coin {
   id: number;
   x: number;
@@ -58,14 +58,14 @@ const CoinRain: React.FC = () => {
     };
 
     // Generate initial spread of coins
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 2; i++) {
       setTimeout(() => generateCoin(), i * 300);
     }
 
     // Continuously generate new coins at random intervals
     const generateRandomCoin = () => {
       generateCoin();
-      const nextDelay = 500 + Math.random() * 1000; // Random interval 0.5-1.5s
+      const nextDelay = isMobile?(1000+Math.random() * 1000):(500 + Math.random() * 1000); // Random interval 0.5-1.5s
       setTimeout(generateRandomCoin, nextDelay);
     };
 
@@ -116,7 +116,7 @@ const CoinRain: React.FC = () => {
                 alt="HubsAI Coin"
                 className="w-full h-full object-contain"
                 style={{
-                  filter: 'drop-shadow(0 0 20px rgba(255, 215, 0, 0.8)) brightness(1.2) saturate(1.1)',
+                  filter: 'drop-shadow(0 0 5px rgba(255, 215, 0, 0.8)) brightness(0.7) saturate(1.1)',
                   imageRendering: 'crisp-edges',
                 }}
                 loading="lazy"
