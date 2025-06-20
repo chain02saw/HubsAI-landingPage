@@ -33,9 +33,9 @@ const Header: React.FC = () => {
       } else {
         setLoginModalOpen(true);
       }
-    } else if (label === 'Docs') {
-      console.log('Navigate to docs');
-    } else if (label === 'Speak with Tyler') {
+    } else if (label === 'coming soon') {
+      console.log('Navigate to coming soon');
+    } else if (label === 'coming soon') {
       console.log('Navigate to contact Tyler');
     }
     setMenuOpen(false);
@@ -83,7 +83,7 @@ const Header: React.FC = () => {
 
             {/* Navigation Buttons */}
             <div className="hidden md:flex items-center space-x-3">
-              {['Docs', getProfileButtonText(), 'Speak with Tyler'].map((label, i) => (
+              {['coming soon', getProfileButtonText(), 'coming soon'].map((label, i) => (
                 <motion.button
                   key={`${label}-${i}`}
                   onClick={() => handleNavClick(label.includes('Dashboard') || label.includes('Connect') ? 'Profile' : label)}
@@ -132,7 +132,7 @@ const Header: React.FC = () => {
                   height: { duration: 0.4 }
                 }}
               >
-                {['Docs', getProfileButtonText(), 'Speak with Tyler'].map((label, index) => (
+                {['coming soon', getProfileButtonText(), 'coming soon'].map((label, index) => (
                   <motion.button
                     key={`mobile-${label}-${index}`}
                     onClick={() => handleNavClick(label.includes('Dashboard') || label.includes('Connect') ? 'Profile' : label)}
