@@ -33,10 +33,10 @@ const Header: React.FC = () => {
       } else {
         setLoginModalOpen(true);
       }
-    } else if (label === 'coming soon') {
-      console.log('Navigate to coming soon');
-    } else if (label === 'coming soon') {
-      console.log('Navigate to contact Tyler');
+    } else if (label === 'Docs - coming soon') {
+      console.log('Navigate to docs');
+    } else if (label === 'AI Ty - coming soon') {
+      console.log('Navigate to AI Ty');
     }
     setMenuOpen(false);
   };
@@ -62,9 +62,23 @@ const Header: React.FC = () => {
     return 'bg-teal-500/10 border-teal-300/50 hover:bg-gray-900';
   };
 
-  // ✅ Helper function to get button text style
-  const getButtonTextStyle = (label: string) => {
-    return label === 'coming soon' ? 'italic' : '';
+  // ✅ Helper function to render button text with mixed styling
+  const renderButtonText = (label: string) => {
+    if (label === 'Docs - coming soon') {
+      return (
+        <>
+          Docs - <span className="italic">coming soon</span>
+        </>
+      );
+    }
+    if (label === 'AI Ty - coming soon') {
+      return (
+        <>
+          AI Ty - <span className="italic">coming soon</span>
+        </>
+      );
+    }
+    return label;
   };
   
   return (
@@ -88,14 +102,14 @@ const Header: React.FC = () => {
 
             {/* Navigation Buttons */}
             <div className="hidden md:flex items-center space-x-3">
-              {['coming soon', getProfileButtonText(), 'coming soon'].map((label, i) => (
+              {['Docs - coming soon', getProfileButtonText(), 'AI Ty - coming soon'].map((label, i) => (
                 <motion.button
                   key={`${label}-${i}`}
                   onClick={() => handleNavClick(label.includes('Dashboard') || label.includes('Connect') ? 'Profile' : label)}
                   disabled={loading}
                   className={`px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base rounded-xl text-white border transition-all duration-300 backdrop-blur-sm ${getProfileButtonStyle()} ${
                     loading ? 'opacity-50 cursor-not-allowed' : ''
-                  } ${getButtonTextStyle(label)}`} // ✅ Added italic style
+                  }`}
                   whileHover={!loading ? { scale: 1.05 } : {}}
                   transition={{ type: 'spring', stiffness: 400, damping: 10 + i * 10 }}
                 >
@@ -104,7 +118,7 @@ const Header: React.FC = () => {
                       hasCompletedWalletSetup ? 'bg-green-500' : 'bg-yellow-500'
                     }`}></span>
                   )}
-                  {label}
+                  {renderButtonText(label)}
                 </motion.button>
               ))}
             </div>
@@ -137,14 +151,14 @@ const Header: React.FC = () => {
                   height: { duration: 0.4 }
                 }}
               >
-                {['coming soon', getProfileButtonText(), 'coming soon'].map((label, index) => (
+                {['Docs - coming soon', getProfileButtonText(), 'AI Ty - coming soon'].map((label, index) => (
                   <motion.button
                     key={`mobile-${label}-${index}`}
                     onClick={() => handleNavClick(label.includes('Dashboard') || label.includes('Connect') ? 'Profile' : label)}
                     disabled={loading}
                     className={`block w-full text-left px-4 py-2 text-sm rounded-xl text-white border transition-all duration-300 backdrop-blur-sm ${getProfileButtonStyle()} ${
                       loading ? 'opacity-50 cursor-not-allowed' : ''
-                    } ${getButtonTextStyle(label)}`} // ✅ Added italic style for mobile too
+                    }`}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
@@ -160,7 +174,7 @@ const Header: React.FC = () => {
                         hasCompletedWalletSetup ? 'bg-green-500' : 'bg-yellow-500'
                       }`}></span>
                     )}
-                    {label}
+                    {renderButtonText(label)}
                   </motion.button>
                 ))}
 
