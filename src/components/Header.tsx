@@ -61,6 +61,11 @@ const Header: React.FC = () => {
     }
     return 'bg-teal-500/10 border-teal-300/50 hover:bg-gray-900';
   };
+
+  // ✅ Helper function to get button text style
+  const getButtonTextStyle = (label: string) => {
+    return label === 'coming soon' ? 'italic' : '';
+  };
   
   return (
     <>
@@ -90,7 +95,7 @@ const Header: React.FC = () => {
                   disabled={loading}
                   className={`px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base rounded-xl text-white border transition-all duration-300 backdrop-blur-sm ${getProfileButtonStyle()} ${
                     loading ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
+                  } ${getButtonTextStyle(label)}`} // ✅ Added italic style
                   whileHover={!loading ? { scale: 1.05 } : {}}
                   transition={{ type: 'spring', stiffness: 400, damping: 10 + i * 10 }}
                 >
@@ -139,7 +144,7 @@ const Header: React.FC = () => {
                     disabled={loading}
                     className={`block w-full text-left px-4 py-2 text-sm rounded-xl text-white border transition-all duration-300 backdrop-blur-sm ${getProfileButtonStyle()} ${
                       loading ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
+                    } ${getButtonTextStyle(label)}`} // ✅ Added italic style for mobile too
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
