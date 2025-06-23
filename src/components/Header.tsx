@@ -27,6 +27,7 @@ const Header: React.FC = () => {
         if (!hasCompletedWalletSetup) {
           setWalletSelectionOpen(true);
         } else {
+          // Show dashboard/profile (you can implement this later)
           console.log('Show user dashboard');
         }
       } else {
