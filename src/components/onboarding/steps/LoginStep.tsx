@@ -8,7 +8,7 @@ interface LoginStepProps {
   onClose: () => void;
 }
 
-export const LoginStep: React.FC<LoginStepProps> = ({ onNext, onClose }) => {
+export const LoginStep: React.FC<LoginStepProps> = ({ onNext }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
