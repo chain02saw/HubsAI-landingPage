@@ -4,8 +4,8 @@ import type { PublicKey } from "@solana/web3.js";
 
 // Mock Context (replace with your actual context imports)
 const useAuth = () => ({
-  signUp: async (email: any, password: any, name: any) => ({ success: true }),
-  signIn: async (email: any, password: any) => ({ success: true }),
+  signUp: async (_email: any, _password: any, _name: any) => ({ success: true }),
+  signIn: async (_email: any, _password: any) => ({ success: true }),
   createClaimWallet: async () => "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
   claimWalletAddress: "",
   user: { name: "John Doe", email: "john@example.com" },
@@ -27,7 +27,7 @@ interface LoginStepProps {
   onClose: () => void;
 }
 
-const LoginStep: React.FC<LoginStepProps> = ({ onNext, onClose }) => {
+const LoginStep: React.FC<LoginStepProps> = ({ onNext }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -38,7 +38,7 @@ const LoginStep: React.FC<LoginStepProps> = ({ onNext, onClose }) => {
     name: "",
   });
 
-  const { signUp, signIn } = useAuth();
+const { signUp, signIn } = useAuth();
 
   const handleInputChange = (e: { target: { name: any; value: any } }) => {
     setFormData({
@@ -82,10 +82,7 @@ const LoginStep: React.FC<LoginStepProps> = ({ onNext, onClose }) => {
       if (result.success) {
         onNext();
       } else {
-        interface AuthResult {
-          success: boolean;
-          error?: string; // Add error property to the type
-        }
+        setError("Authentication failed. Please check your credentials.");
       }
     } catch (err) {
       setError("Authentication failed");
@@ -352,7 +349,7 @@ type ProfileSetupStepProps = {
   onNext: () => void;
 };
 
-const ProfileSetupStep = ({ onNext }: ProfileSetupStepProps) => {
+const ProfileSetupStep = ({ }: ProfileSetupStepProps) => {
   const [formData, setFormData] = useState({
     fullName: "",
     username: "",
@@ -378,14 +375,7 @@ const ProfileSetupStep = ({ onNext }: ProfileSetupStepProps) => {
     // Simulate profile creation
     setTimeout(() => {
       setLoading(false);
-      type ProfileSetupStepProps = {
-        onNext: (formData: {
-          fullName: string;
-          username: string;
-          country: string;
-          avatar: any;
-        }) => void;
-      };
+      
     }, 1000);
   };
 
