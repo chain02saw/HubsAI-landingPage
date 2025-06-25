@@ -1,65 +1,70 @@
-
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import type { PublicKey } from "@solana/web3.js";
 
 // Mock Context (replace with your actual context imports)
 const useAuth = () => ({
-  signUp: async (email, password, name) => ({ success: true }),
-  signIn: async (email, password) => ({ success: true }),
-  createClaimWallet: async () => '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa',
-  claimWalletAddress: null,
-  user: { name: 'John Doe', email: 'john@example.com' }
+  signUp: async (email: any, password: any, name: any) => ({ success: true }),
+  signIn: async (email: any, password: any) => ({ success: true }),
+  createClaimWallet: async () => "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+  claimWalletAddress: "",
+  user: { name: "John Doe", email: "john@example.com" },
 });
 
 const useWallet = () => ({
   connected: false,
   publicKey: null,
-  wallet: null
+  wallet: null,
 });
 
 const useWalletModal = () => ({
-  setVisible: (visible) => console.log('Wallet modal:', visible)
+  setVisible: (visible: any) => console.log("Wallet modal:", visible),
 });
 
 // Step 1: Enhanced Login Component
-const LoginStep = ({ onNext, onClose }) => {
+interface LoginStepProps {
+  onNext: () => void;
+  onClose: () => void;
+}
+
+const LoginStep: React.FC<LoginStepProps> = ({ onNext, onClose }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    name: ''
+    email: "",
+    password: "",
+    confirmPassword: "",
+    name: "",
   });
 
   const { signUp, signIn } = useAuth();
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: { target: { name: any; value: any } }) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
-    if (error) setError(null);
+    if (error) setError("");
   };
 
   const handleSubmit = async () => {
     if (!formData.email || !formData.password) {
-      setError('Email and password are required');
+      setError("Email and password are required");
       return;
     }
 
     if (!isLogin) {
       if (!formData.name) {
-        setError('Name is required');
+        setError("Name is required");
         return;
       }
       if (formData.password !== formData.confirmPassword) {
-        setError('Passwords do not match');
+        setError("Passwords do not match");
         return;
       }
       if (formData.password.length < 6) {
-        setError('Password must be at least 6 characters');
+        setError("Password must be at least 6 characters");
         return;
       }
     }
@@ -77,10 +82,13 @@ const LoginStep = ({ onNext, onClose }) => {
       if (result.success) {
         onNext();
       } else {
-        setError(result.error);
+        interface AuthResult {
+          success: boolean;
+          error?: string; // Add error property to the type
+        }
       }
     } catch (err) {
-      setError('Authentication failed');
+      setError("Authentication failed");
     } finally {
       setLoading(false);
     }
@@ -90,10 +98,12 @@ const LoginStep = ({ onNext, onClose }) => {
     <div className="max-w-md mx-auto">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-white mb-2">
-          {isLogin ? 'Welcome Back' : 'Join HubsAI'}
+          {isLogin ? "Welcome Back" : "Join HubsAI"}
         </h2>
         <p className="text-gray-300">
-          {isLogin ? 'Sign in to claim your NFT + rewards' : 'Create account to start your journey'}
+          {isLogin
+            ? "Sign in to claim your NFT + rewards"
+            : "Create account to start your journey"}
         </p>
       </div>
 
@@ -106,7 +116,9 @@ const LoginStep = ({ onNext, onClose }) => {
       <div className="space-y-4">
         {!isLogin && (
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Full Name</label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Full Name
+            </label>
             <input
               type="text"
               name="name"
@@ -119,7 +131,9 @@ const LoginStep = ({ onNext, onClose }) => {
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Email Address
+          </label>
           <input
             type="email"
             name="email"
@@ -131,7 +145,9 @@ const LoginStep = ({ onNext, onClose }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Password
+          </label>
           <input
             type="password"
             name="password"
@@ -144,7 +160,9 @@ const LoginStep = ({ onNext, onClose }) => {
 
         {!isLogin && (
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Confirm Password</label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Confirm Password
+            </label>
             <input
               type="password"
               name="confirmPassword"
@@ -161,7 +179,7 @@ const LoginStep = ({ onNext, onClose }) => {
           disabled={loading}
           className="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-400 hover:to-primary-500 disabled:opacity-50 text-white font-bold rounded-xl transition-all duration-300"
         >
-          {loading ? 'Processing...' : 'Continue'}
+          {loading ? "Processing..." : "Continue"}
         </button>
       </div>
 
@@ -173,7 +191,7 @@ const LoginStep = ({ onNext, onClose }) => {
             onClick={() => setIsLogin(!isLogin)}
             className="ml-2 text-primary-400 hover:text-primary-300 font-medium"
           >
-            {isLogin ? 'Sign up' : 'Sign in'}
+            {isLogin ? "Sign up" : "Sign in"}
           </button>
         </p>
       </div>
@@ -182,7 +200,12 @@ const LoginStep = ({ onNext, onClose }) => {
 };
 
 // Step 2: Claim Wallet
-const ClaimWalletStep = ({ onNext, onSkip }) => {
+type ClaimWalletStepProps = {
+  onNext: () => void;
+  onSkip: () => void;
+};
+
+const ClaimWalletStep = ({ onNext, onSkip }: ClaimWalletStepProps) => {
   const { createClaimWallet, claimWalletAddress } = useAuth();
   const [loading, setLoading] = useState(false);
   const [created, setCreated] = useState(!!claimWalletAddress);
@@ -195,7 +218,7 @@ const ClaimWalletStep = ({ onNext, onSkip }) => {
         setCreated(true);
       }
     } catch (error) {
-      console.error('Error creating wallet:', error);
+      console.error("Error creating wallet:", error);
     } finally {
       setLoading(false);
     }
@@ -206,19 +229,23 @@ const ClaimWalletStep = ({ onNext, onSkip }) => {
       <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-primary-500 to-primary-600 rounded-full flex items-center justify-center">
         <span className="text-3xl">📧</span>
       </div>
-      
+
       <h2 className="text-3xl font-bold text-white mb-4">Claim Your Wallet</h2>
       <p className="text-gray-300 mb-8">
-        We'll create a secure wallet tied to your email so you can access and stake your NFT anytime.
+        We'll create a secure wallet tied to your email so you can access and
+        stake your NFT anytime.
       </p>
 
       {created ? (
         <div className="space-y-4">
           <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-xl">
-            <p className="text-green-400 font-medium">✅ Wallet Created Successfully!</p>
+            <p className="text-green-400 font-medium">
+              ✅ Wallet Created Successfully!
+            </p>
             {claimWalletAddress && (
               <p className="text-xs text-gray-400 mt-2 font-mono">
-                {claimWalletAddress.slice(0, 8)}...{claimWalletAddress.slice(-8)}
+                {claimWalletAddress.slice(0, 8)}...
+                {claimWalletAddress.slice(-8)}
               </p>
             )}
           </div>
@@ -236,7 +263,7 @@ const ClaimWalletStep = ({ onNext, onSkip }) => {
             disabled={loading}
             className="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-400 hover:to-primary-500 disabled:opacity-50 text-white font-bold rounded-xl transition-all duration-300"
           >
-            {loading ? 'Creating Wallet...' : 'Create Wallet'}
+            {loading ? "Creating Wallet..." : "Create Wallet"}
           </button>
           <button
             onClick={onSkip}
@@ -251,8 +278,17 @@ const ClaimWalletStep = ({ onNext, onSkip }) => {
 };
 
 // Step 3: Connect External Wallet
-const ConnectWalletStep = ({ onNext, onSkip }) => {
-  const { connected, publicKey, wallet } = useWallet();
+type ConnectWalletStepProps = {
+  onNext: () => void;
+  onSkip: () => void;
+};
+
+const ConnectWalletStep = ({ onNext, onSkip }: ConnectWalletStepProps) => {
+  const { connected, publicKey, wallet } = useWallet() as {
+    connected: boolean;
+    publicKey: PublicKey | null;
+    wallet: { adapter: { name: string } } | null;
+  };
   const { setVisible } = useWalletModal();
 
   useEffect(() => {
@@ -270,18 +306,24 @@ const ConnectWalletStep = ({ onNext, onSkip }) => {
       <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full flex items-center justify-center">
         <span className="text-3xl">🦊</span>
       </div>
-      
-      <h2 className="text-3xl font-bold text-white mb-4">Connect External Wallet</h2>
+
+      <h2 className="text-3xl font-bold text-white mb-4">
+        Connect External Wallet
+      </h2>
       <p className="text-gray-300 mb-8">
-        Connect your Phantom, Backpack, Solflare, or other Solana wallet for enhanced features.
+        Connect your Phantom, Backpack, Solflare, or other Solana wallet for
+        enhanced features.
       </p>
 
       {connected && publicKey ? (
         <div className="space-y-4">
           <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-xl">
-            <p className="text-green-400 font-medium">✅ {wallet?.adapter.name} Connected!</p>
+            <p className="text-green-400 font-medium">
+              ✅ {wallet?.adapter.name} Connected!
+            </p>
             <p className="text-xs text-gray-400 mt-2 font-mono">
-              {publicKey.toBase58().slice(0, 8)}...{publicKey.toBase58().slice(-8)}
+              {publicKey.toBase58().slice(0, 8)}...
+              {publicKey.toBase58().slice(-8)}
             </p>
           </div>
         </div>
@@ -306,19 +348,23 @@ const ConnectWalletStep = ({ onNext, onSkip }) => {
 };
 
 // Step 4: Profile Setup
-const ProfileSetupStep = ({ onNext }) => {
+type ProfileSetupStepProps = {
+  onNext: () => void;
+};
+
+const ProfileSetupStep = ({ onNext }: ProfileSetupStepProps) => {
   const [formData, setFormData] = useState({
-    fullName: '',
-    username: '',
-    country: '',
-    avatar: null
+    fullName: "",
+    username: "",
+    country: "",
+    avatar: null,
   });
   const [loading, setLoading] = useState(false);
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: { target: { name: any; value: any } }) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -326,26 +372,39 @@ const ProfileSetupStep = ({ onNext }) => {
     if (!formData.fullName || !formData.username || !formData.country) {
       return;
     }
-    
+
     setLoading(true);
-    
+
     // Simulate profile creation
     setTimeout(() => {
       setLoading(false);
-      onNext(formData);
+      type ProfileSetupStepProps = {
+        onNext: (formData: {
+          fullName: string;
+          username: string;
+          country: string;
+          avatar: any;
+        }) => void;
+      };
     }, 1000);
   };
 
   return (
     <div className="max-w-md mx-auto">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-white mb-2">Create Your Profile</h2>
-        <p className="text-gray-300">Tell us about yourself to personalize your experience</p>
+        <h2 className="text-3xl font-bold text-white mb-2">
+          Create Your Profile
+        </h2>
+        <p className="text-gray-300">
+          Tell us about yourself to personalize your experience
+        </p>
       </div>
 
       <div className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Full Name</label>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Full Name
+          </label>
           <input
             type="text"
             name="fullName"
@@ -357,7 +416,9 @@ const ProfileSetupStep = ({ onNext }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Username / Handle</label>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Username / Handle
+          </label>
           <input
             type="text"
             name="username"
@@ -369,7 +430,9 @@ const ProfileSetupStep = ({ onNext }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Country</label>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Country
+          </label>
           <select
             name="country"
             value={formData.country}
@@ -389,7 +452,9 @@ const ProfileSetupStep = ({ onNext }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Avatar (Optional)</label>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Avatar (Optional)
+          </label>
           <div className="flex items-center space-x-4">
             <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center border border-white/10">
               <span className="text-2xl">👤</span>
@@ -408,7 +473,7 @@ const ProfileSetupStep = ({ onNext }) => {
           disabled={loading}
           className="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-400 hover:to-primary-500 disabled:opacity-50 text-white font-bold rounded-xl transition-all duration-300"
         >
-          {loading ? 'Creating Profile...' : 'Join Community'}
+          {loading ? "Creating Profile..." : "Join Community"}
         </button>
       </div>
     </div>
@@ -416,23 +481,42 @@ const ProfileSetupStep = ({ onNext }) => {
 };
 
 // Step 5: Community Summary
-const CommunitySummaryStep = ({ onNext, profileData }) => {
+interface CommunitySummaryStepProps {
+  onNext: () => void;
+  profileData: any; // Replace 'any' with a more specific type if available
+}
+
+const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({
+  onNext,
+}) => {
   const mockNFTs = [
-    { id: 1, name: 'HubsAI Genesis', image: '/assets/hubsai-logo.png', rarity: 'Rare' },
-    { id: 2, name: 'Retail Token', image: '/assets/hubsai-logo.png', rarity: 'Common' }
+    {
+      id: 1,
+      name: "HubsAI Genesis",
+      image: "/assets/hubsai-logo.png",
+      rarity: "Rare",
+    },
+    {
+      id: 2,
+      name: "Retail Token",
+      image: "/assets/hubsai-logo.png",
+      rarity: "Common",
+    },
   ];
 
   const topBrands = [
-    { name: 'Nike', reward: '5% cashback', logo: '👟' },
-    { name: 'Apple', reward: '3% rewards', logo: '🍎' },
-    { name: 'Amazon', reward: '2% back', logo: '📦' },
-    { name: 'Tesla', reward: '4% rewards', logo: '🚗' }
+    { name: "Nike", reward: "5% cashback", logo: "👟" },
+    { name: "Apple", reward: "3% rewards", logo: "🍎" },
+    { name: "Amazon", reward: "2% back", logo: "📦" },
+    { name: "Tesla", reward: "4% rewards", logo: "🚗" },
   ];
 
   return (
     <div className="max-w-4xl mx-auto">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-white mb-2">Welcome to HubsAI Community</h2>
+        <h2 className="text-3xl font-bold text-white mb-2">
+          Welcome to HubsAI Community
+        </h2>
         <p className="text-gray-300">Your rewards journey starts here</p>
       </div>
 
@@ -445,7 +529,10 @@ const CommunitySummaryStep = ({ onNext, profileData }) => {
           </h3>
           <div className="space-y-3">
             {mockNFTs.map((nft) => (
-              <div key={nft.id} className="flex items-center space-x-4 p-3 bg-white/5 rounded-xl">
+              <div
+                key={nft.id}
+                className="flex items-center space-x-4 p-3 bg-white/5 rounded-xl"
+              >
                 <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center">
                   <span className="text-xl">🎨</span>
                 </div>
@@ -467,7 +554,10 @@ const CommunitySummaryStep = ({ onNext, profileData }) => {
           </h3>
           <div className="space-y-3">
             {topBrands.map((brand, index) => (
-              <div key={index} className="flex items-center space-x-4 p-3 bg-white/5 rounded-xl">
+              <div
+                key={index}
+                className="flex items-center space-x-4 p-3 bg-white/5 rounded-xl"
+              >
                 <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center">
                   <span className="text-xl">{brand.logo}</span>
                 </div>
@@ -488,7 +578,7 @@ const CommunitySummaryStep = ({ onNext, profileData }) => {
             🎉 Congratulations! You're now part of the HubsAI community
           </p>
         </div>
-        
+
         <button
           onClick={onNext}
           className="w-full max-w-md mx-auto block py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-400 hover:to-primary-500 text-white font-bold rounded-xl transition-all duration-300"
@@ -501,22 +591,30 @@ const CommunitySummaryStep = ({ onNext, profileData }) => {
 };
 
 // Step 6: Dashboard
-const DashboardStep = ({ onBackToLanding, profileData }) => {
-  const [activeTab, setActiveTab] = useState('vault');
+type DashboardStepProps = {
+  onBackToLanding: () => void;
+  profileData: any; // Replace 'any' with the actual type if known
+};
+
+const DashboardStep = ({
+  onBackToLanding,
+  profileData,
+}: DashboardStepProps) => {
+  const [activeTab, setActiveTab] = useState("vault");
 
   const tabs = [
-    { id: 'vault', label: 'NFT Vault', icon: '🎨' },
-    { id: 'activity', label: 'Activity Feed', icon: '📊', comingSoon: true },
-    { id: 'settings', label: 'Settings', icon: '⚙️' },
-    { id: 'referrals', label: 'Referrals', icon: '👥', comingSoon: true },
-    { id: 'marketplace', label: 'Marketplace', icon: '🛍️', comingSoon: true }
+    { id: "vault", label: "NFT Vault", icon: "🎨" },
+    { id: "activity", label: "Activity Feed", icon: "📊", comingSoon: true },
+    { id: "settings", label: "Settings", icon: "⚙️" },
+    { id: "referrals", label: "Referrals", icon: "👥", comingSoon: true },
+    { id: "marketplace", label: "Marketplace", icon: "🛍️", comingSoon: true },
   ];
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'vault':
+      case "vault":
         return <NFTVaultContent />;
-      case 'settings':
+      case "settings":
         return <SettingsContent profileData={profileData} />;
       default:
         return <ComingSoonContent />;
@@ -528,8 +626,12 @@ const DashboardStep = ({ onBackToLanding, profileData }) => {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white">Welcome back, {profileData?.fullName || 'User'}!</h1>
-          <p className="text-gray-400">Manage your NFTs and track your rewards</p>
+          <h1 className="text-3xl font-bold text-white">
+            Welcome back, {profileData?.fullName || "User"}!
+          </h1>
+          <p className="text-gray-400">
+            Manage your NFTs and track your rewards
+          </p>
         </div>
         <button
           onClick={onBackToLanding}
@@ -547,8 +649,8 @@ const DashboardStep = ({ onBackToLanding, profileData }) => {
             onClick={() => setActiveTab(tab.id)}
             className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded-lg transition-all ${
               activeTab === tab.id
-                ? 'bg-primary-500 text-white'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                ? "bg-primary-500 text-white"
+                : "text-gray-400 hover:text-white hover:bg-white/5"
             }`}
           >
             <span>{tab.icon}</span>
@@ -563,9 +665,7 @@ const DashboardStep = ({ onBackToLanding, profileData }) => {
       </div>
 
       {/* Tab Content */}
-      <div className="glass rounded-2xl p-6 min-h-96">
-        {renderTabContent()}
-      </div>
+      <div className="glass rounded-2xl p-6 min-h-96">{renderTabContent()}</div>
     </div>
   );
 };
@@ -573,30 +673,30 @@ const DashboardStep = ({ onBackToLanding, profileData }) => {
 // NFT Vault Content
 const NFTVaultContent = () => {
   const mockNFTs = [
-    { 
-      id: 1, 
-      name: 'HubsAI Genesis #001', 
-      image: '/assets/hubsai-logo.png', 
-      rarity: 'Legendary',
-      stakingRewards: '12.5 HUBS/day',
-      isStaked: true
+    {
+      id: 1,
+      name: "HubsAI Genesis #001",
+      image: "/assets/hubsai-logo.png",
+      rarity: "Legendary",
+      stakingRewards: "12.5 HUBS/day",
+      isStaked: true,
     },
-    { 
-      id: 2, 
-      name: 'Retail Pioneer #156', 
-      image: '/assets/hubsai-logo.png', 
-      rarity: 'Rare',
-      stakingRewards: '8.2 HUBS/day',
-      isStaked: false
+    {
+      id: 2,
+      name: "Retail Pioneer #156",
+      image: "/assets/hubsai-logo.png",
+      rarity: "Rare",
+      stakingRewards: "8.2 HUBS/day",
+      isStaked: false,
     },
-    { 
-      id: 3, 
-      name: 'Commerce Token #892', 
-      image: '/assets/hubsai-logo.png', 
-      rarity: 'Common',
-      stakingRewards: '5.1 HUBS/day',
-      isStaked: true
-    }
+    {
+      id: 3,
+      name: "Commerce Token #892",
+      image: "/assets/hubsai-logo.png",
+      rarity: "Common",
+      stakingRewards: "5.1 HUBS/day",
+      isStaked: true,
+    },
   ];
 
   return (
@@ -605,36 +705,47 @@ const NFTVaultContent = () => {
         <h2 className="text-2xl font-bold text-white">Your NFT Collection</h2>
         <div className="flex items-center space-x-4">
           <span className="text-sm text-gray-400">Total Staked: 2/3</span>
-          <span className="text-sm text-green-400">Daily Rewards: ~17.6 HUBS</span>
+          <span className="text-sm text-green-400">
+            Daily Rewards: ~17.6 HUBS
+          </span>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {mockNFTs.map((nft) => (
-          <div key={nft.id} className="bg-white/5 rounded-xl p-4 border border-white/10 hover:border-primary-500/50 transition-all">
+          <div
+            key={nft.id}
+            className="bg-white/5 rounded-xl p-4 border border-white/10 hover:border-primary-500/50 transition-all"
+          >
             <div className="aspect-square bg-gradient-to-br from-primary-500/20 to-primary-600/20 rounded-lg mb-4 flex items-center justify-center">
               <span className="text-4xl">🎨</span>
             </div>
-            
+
             <h3 className="font-bold text-white mb-2">{nft.name}</h3>
             <p className="text-sm text-gray-400 mb-2">Rarity: {nft.rarity}</p>
-            <p className="text-sm text-primary-400 mb-4">Rewards: {nft.stakingRewards}</p>
-            
+            <p className="text-sm text-primary-400 mb-4">
+              Rewards: {nft.stakingRewards}
+            </p>
+
             <div className="flex items-center justify-between">
-              <span className={`text-xs px-2 py-1 rounded-full ${
-                nft.isStaked 
-                  ? 'bg-green-500/20 text-green-400' 
-                  : 'bg-gray-500/20 text-gray-400'
-              }`}>
-                {nft.isStaked ? 'Staking' : 'Not Staked'}
+              <span
+                className={`text-xs px-2 py-1 rounded-full ${
+                  nft.isStaked
+                    ? "bg-green-500/20 text-green-400"
+                    : "bg-gray-500/20 text-gray-400"
+                }`}
+              >
+                {nft.isStaked ? "Staking" : "Not Staked"}
               </span>
-              
-              <button className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
-                nft.isStaked
-                  ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
-                  : 'bg-primary-500/20 text-primary-400 hover:bg-primary-500/30'
-              }`}>
-                {nft.isStaked ? 'Unstake' : 'Stake'}
+
+              <button
+                className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                  nft.isStaked
+                    ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
+                    : "bg-primary-500/20 text-primary-400 hover:bg-primary-500/30"
+                }`}
+              >
+                {nft.isStaked ? "Unstake" : "Stake"}
               </button>
             </div>
           </div>
@@ -655,41 +766,62 @@ const NFTVaultContent = () => {
 };
 
 // Settings Content
-const SettingsContent = ({ profileData }) => {
-  const { user, claimWalletAddress } = useAuth();
-  const { connected, publicKey, wallet } = useWallet();
+interface ProfileData {
+  country: string;
+  fullName?: string;
+  username?: string;
+}
 
+const SettingsContent = ({ profileData }: { profileData: ProfileData }) => {
+  const { user, claimWalletAddress } = useAuth();
+  const { connected, publicKey, wallet } = useWallet() as {
+    connected: boolean;
+    publicKey: PublicKey | null;
+    wallet: { adapter: { name: string } } | null;
+  };
   return (
     <div className="max-w-2xl">
       <h2 className="text-2xl font-bold text-white mb-6">Account Settings</h2>
-      
+
       <div className="space-y-6">
         {/* Profile Information */}
         <div className="bg-white/5 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Profile Information</h3>
+          <h3 className="text-lg font-semibold text-white mb-4">
+            Profile Information
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Full Name</label>
-              <p className="text-white">{profileData?.fullName || user?.name || 'Not set'}</p>
+              <label className="block text-sm text-gray-400 mb-1">
+                Full Name
+              </label>
+              <p className="text-white">
+                {profileData?.fullName || user?.name || "Not set"}
+              </p>
             </div>
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Username</label>
-              <p className="text-white">{profileData?.username || 'Not set'}</p>
+              <label className="block text-sm text-gray-400 mb-1">
+                Username
+              </label>
+              <p className="text-white">{profileData?.username || "Not set"}</p>
             </div>
             <div>
               <label className="block text-sm text-gray-400 mb-1">Email</label>
-              <p className="text-white">{user?.email || 'Not set'}</p>
+              <p className="text-white">{user?.email || "Not set"}</p>
             </div>
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Country</label>
-              <p className="text-white">{profileData?.country || 'Not set'}</p>
+              <label className="block text-sm text-gray-400 mb-1">
+                Country
+              </label>
+              <p className="text-white">{profileData?.country || "Not set"}</p>
             </div>
           </div>
         </div>
 
         {/* Connected Wallets */}
         <div className="bg-white/5 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Connected Wallets</h3>
+          <h3 className="text-lg font-semibold text-white mb-4">
+            Connected Wallets
+          </h3>
           <div className="space-y-3">
             {claimWalletAddress && (
               <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
@@ -700,14 +832,15 @@ const SettingsContent = ({ profileData }) => {
                   <div>
                     <p className="text-white font-medium">Claim Wallet</p>
                     <p className="text-xs text-gray-400 font-mono">
-                      {claimWalletAddress.slice(0, 8)}...{claimWalletAddress.slice(-8)}
+                      {claimWalletAddress.slice(0, 8)}...
+                      {claimWalletAddress.slice(-8)}
                     </p>
                   </div>
                 </div>
                 <span className="text-green-400 text-sm">Connected</span>
               </div>
             )}
-            
+
             {connected && publicKey && (
               <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
                 <div className="flex items-center space-x-3">
@@ -715,9 +848,12 @@ const SettingsContent = ({ profileData }) => {
                     <span className="text-sm">🦊</span>
                   </div>
                   <div>
-                    <p className="text-white font-medium">{wallet?.adapter.name}</p>
+                    <p className="text-white font-medium">
+                      {wallet?.adapter.name}
+                    </p>
                     <p className="text-xs text-gray-400 font-mono">
-                      {publicKey.toBase58().slice(0, 8)}...{publicKey.toBase58().slice(-8)}
+                      {publicKey.toBase58().slice(0, 8)}...
+                      {publicKey.toBase58().slice(-8)}
                     </p>
                   </div>
                 </div>
@@ -729,19 +865,27 @@ const SettingsContent = ({ profileData }) => {
 
         {/* Account Actions */}
         <div className="bg-white/5 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Account Actions</h3>
+          <h3 className="text-lg font-semibold text-white mb-4">
+            Account Actions
+          </h3>
           <div className="space-y-3">
             <button className="w-full text-left px-4 py-3 bg-white/5 hover:bg-white/10 rounded-lg transition-colors">
               <span className="text-white">Change Password</span>
-              <p className="text-sm text-gray-400">Update your account password</p>
+              <p className="text-sm text-gray-400">
+                Update your account password
+              </p>
             </button>
             <button className="w-full text-left px-4 py-3 bg-white/5 hover:bg-white/10 rounded-lg transition-colors">
               <span className="text-white">Export Wallet</span>
-              <p className="text-sm text-gray-400">Download your wallet backup</p>
+              <p className="text-sm text-gray-400">
+                Download your wallet backup
+              </p>
             </button>
             <button className="w-full text-left px-4 py-3 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-colors">
               <span className="text-red-400">Delete Account</span>
-              <p className="text-sm text-gray-400">Permanently delete your account</p>
+              <p className="text-sm text-gray-400">
+                Permanently delete your account
+              </p>
             </button>
           </div>
         </div>
@@ -764,14 +908,24 @@ const ComingSoonContent = () => (
 );
 
 // Main Onboarding Flow Component
-const OnboardingFlow = ({ isOpen, onClose, onComplete }) => {
+interface OnboardingFlowProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onComplete: () => void;
+}
+
+const OnboardingFlow = ({
+  isOpen,
+  onClose,
+  onComplete,
+}: OnboardingFlowProps) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [profileData, setProfileData] = useState(null);
   const [showDashboard, setShowDashboard] = useState(false);
 
   const handleNext = (data = null) => {
     if (data) setProfileData(data);
-    
+
     if (currentStep === 6) {
       setShowDashboard(true);
     } else {
@@ -800,9 +954,16 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }) => {
       case 4:
         return <ProfileSetupStep onNext={handleNext} />;
       case 5:
-        return <CommunitySummaryStep onNext={handleNext} profileData={profileData} />;
+        return (
+          <CommunitySummaryStep onNext={handleNext} profileData={profileData} />
+        );
       case 6:
-        return <DashboardStep onBackToLanding={handleBackToLanding} profileData={profileData} />;
+        return (
+          <DashboardStep
+            onBackToLanding={handleBackToLanding}
+            profileData={profileData}
+          />
+        );
       default:
         return <LoginStep onNext={handleNext} onClose={onClose} />;
     }
@@ -812,7 +973,10 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }) => {
   if (showDashboard) {
     return (
       <div className="fixed inset-0 bg-dark-950 z-[100]">
-        <DashboardStep onBackToLanding={handleBackToLanding} profileData={profileData} />
+        <DashboardStep
+          onBackToLanding={handleBackToLanding}
+          profileData={profileData}
+        />
       </div>
     );
   }
@@ -840,7 +1004,7 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }) => {
             >
               {/* Background glow effect */}
               <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-primary-600/5 rounded-3xl" />
-              
+
               {/* Progress indicator */}
               {currentStep < 6 && (
                 <div className="flex items-center justify-center mb-8 relative z-10">
@@ -849,7 +1013,7 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }) => {
                       <div
                         key={step}
                         className={`w-3 h-3 rounded-full transition-colors ${
-                          step <= currentStep ? 'bg-primary-500' : 'bg-white/20'
+                          step <= currentStep ? "bg-primary-500" : "bg-white/20"
                         }`}
                       />
                     ))}
@@ -866,16 +1030,24 @@ const OnboardingFlow = ({ isOpen, onClose, onComplete }) => {
                   onClick={onClose}
                   className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors z-10"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               )}
 
               {/* Step content */}
-              <div className="relative z-10">
-                {renderStep()}
-              </div>
+              <div className="relative z-10">{renderStep()}</div>
             </motion.div>
           </div>
         </>

@@ -20,7 +20,7 @@ const Header: React.FC = () => {
   // Refs to track modal states and prevent conflicts
   const hasTriggeredOnboarding = useRef(false);
   const isProcessingAuth = useRef(false);
-  const onboardingTimeout = useRef<NodeJS.Timeout>();
+  const onboardingTimeout = useRef<NodeJS.Timeout | null>(null);
 
   // Reset triggers when user logs out
   useEffect(() => {
@@ -307,7 +307,7 @@ const Header: React.FC = () => {
       <OnboardingFlow 
         isOpen={onboardingOpen}
         onClose={handleOnboardingClose}
-        onComplete={handleOnboardingComplete}
+        onComplete={()=>handleOnboardingComplete}
       />
 
       {/* Dashboard as fullscreen overlay */}

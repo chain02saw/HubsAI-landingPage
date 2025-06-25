@@ -1,4 +1,4 @@
-// src/components/onboarding/OnboardingFlow.tsx - COMPLETE FIXED VERSION
+// src/components/onboarding/OnboardingFlow.tsx - HOOKS RULE COMPLIANT VERSION
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../AuthContext';
@@ -6,18 +6,23 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 
 // Step Components (same as before)
-const LoginStep = ({ onNext, onClose }) => {
+interface LoginStepProps {
+    onNext: () => void;
+    onClose: () => void;
+}
+
+const LoginStep: React.FC<LoginStepProps> = ({ onNext, onClose }) => {
   const [isLogin, setIsLogin] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     email: '', password: '', confirmPassword: '', name: ''
   });
   const { signUp, signIn } = useAuth();
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e:any) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    if (error) setError(null);
+    if (error) setError('');
   };
 
   const handleSubmit = async () => {
@@ -155,7 +160,12 @@ const LoginStep = ({ onNext, onClose }) => {
   );
 };
 
-const ClaimWalletStep = ({ onNext, onSkip }) => {
+type ClaimWalletStepProps = {
+    onNext: () => void;
+    onSkip: () => void;
+};
+
+const ClaimWalletStep = ({ onNext, onSkip }: ClaimWalletStepProps) => {
   const { createClaimWallet, claimWalletAddress } = useAuth();
   const [loading, setLoading] = useState(false);
   const [created, setCreated] = useState(!!claimWalletAddress);
@@ -223,7 +233,12 @@ const ClaimWalletStep = ({ onNext, onSkip }) => {
   );
 };
 
-const ConnectWalletStep = ({ onNext, onSkip }) => {
+interface ConnectWalletStepProps {
+    onNext: () => void;
+    onSkip: () => void;
+}
+
+const ConnectWalletStep: React.FC<ConnectWalletStepProps> = ({ onNext, onSkip }) => {
   const { connected, publicKey, wallet } = useWallet();
   const { setVisible } = useWalletModal();
 
@@ -277,13 +292,17 @@ const ConnectWalletStep = ({ onNext, onSkip }) => {
   );
 };
 
-const ProfileSetupStep = ({ onNext }) => {
+interface ProfileSetupStepProps {
+    onNext: (data: any) => void; // Define the type of onNext
+}
+
+const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({ onNext }) => {
   const [formData, setFormData] = useState({
     fullName: '', username: '', country: '', avatar: null
   });
   const [loading, setLoading] = useState(false);
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e:any) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -363,7 +382,12 @@ const ProfileSetupStep = ({ onNext }) => {
   );
 };
 
-const CommunitySummaryStep = ({ onNext, profileData }) => {
+interface CommunitySummaryStepProps {
+    onNext: (data: any) => void; // Replace 'any' with the appropriate type if known
+    profileData: { fullName?: string; [key: string]: any }; // Adjust the structure as needed
+}
+
+const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ onNext, profileData }) => {
   const { user } = useAuth();
 
   return (
@@ -445,52 +469,145 @@ const CommunitySummaryStep = ({ onNext, profileData }) => {
   );
 };
 
-// CORRECTED OnboardingFlow.tsx - Move useAuth to top level
+// FIXED: Main OnboardingFlow component - ALL HOOKS CALLED BEFORE CONDITIONAL LOGIC
+interface OnboardingFlowProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onComplete: () => void;
+}
 
-
-// Step 6: Fixed Dashboard Component
-const DashboardStep = ({ onBackToLanding, profileData }) => {
-  // ✅ CORRECT: useAuth called at component top level
+export const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) => {
+  // 🔧 FIX: ALL HOOKS MUST BE CALLED FIRST
   const { setWalletSetupComplete } = useAuth();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [profileData, setProfileData] = useState(null);
+  const [showDashboard, setShowDashboard] = useState(false);
 
-  const handleEmergencyClose = () => {
-    // ✅ Now use the function from hook called above
-    setWalletSetupComplete();
-    if (onBackToLanding) {
-      onBackToLanding();
-    }
-    // Force close any remaining modals
-    const modals = document.querySelectorAll('[class*="z-[60]"], [class*="z-[70]"], [class*="z-[100]"]');
-    modals.forEach(modal => modal.remove());
-  };
-
-  const handleBackClick = () => {
-    // ✅ Use the function from hook called above
-    setWalletSetupComplete();
-    if (onBackToLanding) {
-      onBackToLanding();
+  const handleNext = (data = null) => {
+    if (data) setProfileData(data);
+    
+    if (currentStep === 6) {
+      setShowDashboard(true);
+    } else {
+      setCurrentStep(currentStep + 1);
     }
   };
+
+  const handleSkip = () => {
+    setCurrentStep(currentStep + 1);
+  };
+
+  const handleBackToLanding = () => {
+    console.log('handleBackToLanding called');
+    setWalletSetupComplete();
+    setShowDashboard(false);
+    setCurrentStep(1);
+    setProfileData(null);
+    
+    if (onComplete) onComplete();
+    if (onClose) onClose();
+  };
+
+  const renderStep = () => {
+    switch (currentStep) {
+      case 1: return <LoginStep onNext={handleNext} onClose={onClose} />;
+      case 2: return <ClaimWalletStep onNext={handleNext} onSkip={handleSkip} />;
+      case 3: return <ConnectWalletStep onNext={handleNext} onSkip={handleSkip} />;
+      case 4: return <ProfileSetupStep onNext={handleNext} />;
+    case 5: return <CommunitySummaryStep onNext={handleNext} profileData={profileData || {}} />;
+    case 6: return <DashboardStep onBackToLanding={handleBackToLanding} profileData={profileData || {}} />;
+      default: return <LoginStep onNext={handleNext} onClose={onClose} />;
+    }
+  };
+
+  // 🔧 FIX: Conditional rendering AFTER all hooks are called
+  if (showDashboard) {
+    return (
+      <div className="fixed inset-0 bg-dark-950 z-[100]">
+        <DashboardStep onBackToLanding={handleBackToLanding} profileData={profileData || {}} />
+      </div>
+    );
+  }
+
+  if (!isOpen) {
+    return null;
+  }
 
   return (
-    <div className="min-h-screen max-w-7xl mx-auto p-6">
-      {/* Emergency close button at the top */}
-      <div className="fixed top-4 right-4 z-[200]">
-        <button
-          onClick={handleEmergencyClose}
-          className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl shadow-lg"
-        >
-          🔴 Force Close
-        </button>
-      </div>
+    <AnimatePresence>
+      <>
+        <motion.div
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60]"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        />
 
+        <div className="fixed inset-0 flex items-center justify-center z-[70] p-4">
+          <motion.div
+            className="glass rounded-3xl p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto relative"
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-primary-600/5 rounded-3xl" />
+            
+            {currentStep < 6 && (
+              <div className="flex items-center justify-center mb-8 relative z-10">
+                <div className="flex space-x-2">
+                  {[1, 2, 3, 4, 5].map((step) => (
+                    <div
+                      key={step}
+                      className={`w-3 h-3 rounded-full transition-colors ${
+                        step <= currentStep ? 'bg-primary-500' : 'bg-white/20'
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="ml-4 text-sm text-gray-400">
+                  Step {currentStep} of 5
+                </span>
+              </div>
+            )}
+
+            {currentStep < 6 && (
+              <button
+                onClick={onClose}
+                className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors z-10"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+
+            <div className="relative z-10">
+              {renderStep()}
+            </div>
+          </motion.div>
+        </div>
+      </>
+    </AnimatePresence>
+  );
+};
+
+// Dashboard Step Component (used internally)
+interface DashboardStepProps {
+    onBackToLanding: () => void;
+    profileData: { fullName?: string };
+}
+
+const DashboardStep: React.FC<DashboardStepProps> = ({ onBackToLanding, profileData }) => {
+  return (
+    <div className="min-h-screen max-w-7xl mx-auto p-6">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-white">Welcome, {profileData?.fullName || 'User'}! 👋</h1>
           <p className="text-gray-400">Your HubsAI dashboard is ready</p>
         </div>
         <button
-          onClick={handleBackClick}
+          onClick={onBackToLanding}
           className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-gray-300 hover:text-white transition-colors"
         >
           ← Back to Landing
@@ -516,126 +633,5 @@ const DashboardStep = ({ onBackToLanding, profileData }) => {
         <p className="text-green-400 font-medium">🎉 Dashboard Coming Soon - Full experience in development!</p>
       </div>
     </div>
-  );
-};
-
-// Main OnboardingFlow component
-export const OnboardingFlow = ({ isOpen, onClose, onComplete }) => {
-  // ✅ CORRECT: All hooks called at top level of component
-  const { setWalletSetupComplete } = useAuth();
-  
-  const [currentStep, setCurrentStep] = useState(1);
-  const [profileData, setProfileData] = useState(null);
-  const [showDashboard, setShowDashboard] = useState(false);
-
-  const handleNext = (data = null) => {
-    if (data) setProfileData(data);
-    
-    if (currentStep === 6) {
-      setShowDashboard(true);
-    } else {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const handleSkip = () => {
-    setCurrentStep(currentStep + 1);
-  };
-
-  const handleBackToLanding = () => {
-    console.log('handleBackToLanding called');
-    
-    // ✅ Use the hook function from top level
-    setWalletSetupComplete();
-    
-    setShowDashboard(false);
-    setCurrentStep(1);
-    setProfileData(null);
-    
-    if (onComplete) onComplete();
-    if (onClose) onClose();
-  };
-
-  // Rest of your step components (LoginStep, ClaimWalletStep, etc.) here...
-  // [Keep all your existing step components - just the main logic above is fixed]
-
-  const renderStep = () => {
-    switch (currentStep) {
-      case 1: return <LoginStep onNext={handleNext} onClose={onClose} />;
-      case 2: return <ClaimWalletStep onNext={handleNext} onSkip={handleSkip} />;
-      case 3: return <ConnectWalletStep onNext={handleNext} onSkip={handleSkip} />;
-      case 4: return <ProfileSetupStep onNext={handleNext} />;
-      case 5: return <CommunitySummaryStep onNext={handleNext} profileData={profileData} />;
-      case 6: return <DashboardStep onBackToLanding={handleBackToLanding} profileData={profileData} />;
-      default: return <LoginStep onNext={handleNext} onClose={onClose} />;
-    }
-  };
-
-  if (showDashboard) {
-    return (
-      <div className="fixed inset-0 bg-dark-950 z-[100]">
-        <DashboardStep onBackToLanding={handleBackToLanding} profileData={profileData} />
-      </div>
-    );
-  }
-
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          <motion.div
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60]"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          />
-
-          <div className="fixed inset-0 flex items-center justify-center z-[70] p-4">
-            <motion.div
-              className="glass rounded-3xl p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto relative"
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-primary-600/5 rounded-3xl" />
-              
-              {currentStep < 6 && (
-                <div className="flex items-center justify-center mb-8 relative z-10">
-                  <div className="flex space-x-2">
-                    {[1, 2, 3, 4, 5].map((step) => (
-                      <div
-                        key={step}
-                        className={`w-3 h-3 rounded-full transition-colors ${
-                          step <= currentStep ? 'bg-primary-500' : 'bg-white/20'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <span className="ml-4 text-sm text-gray-400">
-                    Step {currentStep} of 5
-                  </span>
-                </div>
-              )}
-
-              {currentStep < 6 && (
-                <button
-                  onClick={onClose}
-                  className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors z-10"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
-
-              <div className="relative z-10">
-                {renderStep()}
-              </div>
-            </motion.div>
-          </div>
-        </>
-      )}
-    </AnimatePresence>
   );
 };

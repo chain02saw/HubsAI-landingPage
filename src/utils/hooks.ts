@@ -1,7 +1,7 @@
 // utils/hooks.ts - Simple utility hooks for your existing project
 
 import React from 'react';
-import { useState, useCallback, useRef, useMemo } from 'react';
+import { useState, useCallback, useRef } from 'react';
 
 // Simple form validation hook
 export const useFormValidation = (initialValues: { [key: string]: string }) => {

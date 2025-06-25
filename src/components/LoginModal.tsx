@@ -36,10 +36,11 @@ const validateForm = (formData: any, isLogin: boolean) => {
 };
 
 export const LoginModal: React.FC<LoginModalProps> = React.memo(({ isOpen, onClose, onLoginSuccess }) => {
+  // 🔧 FIX: ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isClosing, setIsClosing] = useState(false); // Add closing state
+  const [isClosing, setIsClosing] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -139,9 +140,6 @@ export const LoginModal: React.FC<LoginModalProps> = React.memo(({ isOpen, onClo
     }, 100);
   }, [loading, isClosing, onClose, resetForm]);
 
-  // Don't render if closing to prevent flicker
-  if (isClosing) return null;
-
   // Optimized: Memoized form fields to prevent recreation
   const formFields = useMemo(() => (
     <>
@@ -237,133 +235,137 @@ export const LoginModal: React.FC<LoginModalProps> = React.memo(({ isOpen, onClo
     </>
   ), [isLogin, formData, errors, handleInputChange, loading]);
 
+  // 🔧 FIX: Conditional rendering AFTER all hooks are called
+  // This prevents the "rendered fewer hooks" error
+  if (!isOpen || isClosing) {
+    return null;
+  }
+
   return (
     <AnimatePresence>
-      {isOpen && !isClosing && (
-        <>
-          {/* Backdrop */}
+      <>
+        {/* Backdrop */}
+        <motion.div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60]"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={handleClose}
+        />
+
+        {/* Modal */}
+        <div className="fixed inset-0 flex items-center justify-center z-[70] p-4">
           <motion.div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60]"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={handleClose}
-          />
-
-          {/* Modal */}
-          <div className="fixed inset-0 flex items-center justify-center z-[70] p-4">
-            <motion.div
-              className="glass rounded-3xl p-8 w-full max-w-md relative overflow-hidden"
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              transition={{ duration: 0.3 }}
+            className="glass rounded-3xl p-8 w-full max-w-md relative overflow-hidden"
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ duration: 0.3 }}
+          >
+            {/* Background glow effect */}
+            <div className="absolute inset-0 bg-gradient-to-br from-primary-500/10 to-primary-600/5 rounded-3xl" />
+            
+            {/* Close button */}
+            <motion.button
+              onClick={handleClose}
+              disabled={loading}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
+              whileHover={!loading ? { scale: 1.1 } : {}}
+              whileTap={!loading ? { scale: 0.9 } : {}}
             >
-              {/* Background glow effect */}
-              <div className="absolute inset-0 bg-gradient-to-br from-primary-500/10 to-primary-600/5 rounded-3xl" />
-              
-              {/* Close button */}
-              <motion.button
-                onClick={handleClose}
-                disabled={loading}
-                className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
-                whileHover={!loading ? { scale: 1.1 } : {}}
-                whileTap={!loading ? { scale: 0.9 } : {}}
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </motion.button>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </motion.button>
 
-              {/* Header */}
-              <div className="text-center mb-8 relative z-10">
-                <motion.h2
-                  className="text-3xl font-bold text-white mb-2"
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 }}
-                >
-                  {isLogin ? 'Welcome Back' : 'Join HubsAI'}
-                </motion.h2>
-                <motion.p
-                  className="text-gray-300"
+            {/* Header */}
+            <div className="text-center mb-8 relative z-10">
+              <motion.h2
+                className="text-3xl font-bold text-white mb-2"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                {isLogin ? 'Welcome Back' : 'Join HubsAI'}
+              </motion.h2>
+              <motion.p
+                className="text-gray-300"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                {isLogin ? 'Sign in to access your account' : 'Create your account to claim your airdrop'}
+              </motion.p>
+            </div>
+
+            {/* Error message */}
+            <AnimatePresence>
+              {error && (
+                <motion.div
+                  className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 mb-6 text-red-400 text-sm"
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
+                  exit={{ opacity: 0, y: -10 }}
                 >
-                  {isLogin ? 'Sign in to access your account' : 'Create your account to claim your airdrop'}
-                </motion.p>
-              </div>
+                  {error}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-              {/* Error message */}
-              <AnimatePresence>
-                {error && (
-                  <motion.div
-                    className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 mb-6 text-red-400 text-sm"
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                  >
-                    {error}
-                  </motion.div>
+            {/* Form */}
+            <motion.form
+              onSubmit={handleSubmit}
+              className="space-y-6 relative z-10"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              {formFields}
+
+              {/* Submit button */}
+              <motion.button
+                type="submit"
+                disabled={loading || !isValid || isClosing}
+                className="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-400 hover:to-primary-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all duration-300 border border-primary-400/50 shadow-lg"
+                whileHover={!loading && isValid && !isClosing ? { 
+                  scale: 1.02,
+                  boxShadow: "0 0 30px rgba(20, 184, 166, 0.4)"
+                } : {}}
+                whileTap={!loading && isValid && !isClosing ? { scale: 0.98 } : {}}
+              >
+                {loading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                    {isLogin ? 'Signing In...' : 'Creating Account...'}
+                  </div>
+                ) : (
+                  isLogin ? 'Sign In' : 'Create Account'
                 )}
-              </AnimatePresence>
+              </motion.button>
+            </motion.form>
 
-              {/* Form */}
-              <motion.form
-                onSubmit={handleSubmit}
-                className="space-y-6 relative z-10"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                {formFields}
-
-                {/* Submit button */}
-                <motion.button
-                  type="submit"
-                  disabled={loading || !isValid || isClosing}
-                  className="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-400 hover:to-primary-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all duration-300 border border-primary-400/50 shadow-lg"
-                  whileHover={!loading && isValid && !isClosing ? { 
-                    scale: 1.02,
-                    boxShadow: "0 0 30px rgba(20, 184, 166, 0.4)"
-                  } : {}}
-                  whileTap={!loading && isValid && !isClosing ? { scale: 0.98 } : {}}
+            {/* Toggle login/signup */}
+            <motion.div
+              className="text-center mt-6 relative z-10"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+            >
+              <p className="text-gray-300">
+                {isLogin ? "Don't have an account?" : "Already have an account?"}
+                <button
+                  type="button"
+                  onClick={toggleMode}
+                  disabled={loading || isClosing}
+                  className="ml-2 text-primary-400 hover:text-primary-300 disabled:opacity-50 font-medium transition-colors"
                 >
-                  {loading ? (
-                    <div className="flex items-center justify-center">
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                      {isLogin ? 'Signing In...' : 'Creating Account...'}
-                    </div>
-                  ) : (
-                    isLogin ? 'Sign In' : 'Create Account'
-                  )}
-                </motion.button>
-              </motion.form>
-
-              {/* Toggle login/signup */}
-              <motion.div
-                className="text-center mt-6 relative z-10"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.4 }}
-              >
-                <p className="text-gray-300">
-                  {isLogin ? "Don't have an account?" : "Already have an account?"}
-                  <button
-                    type="button"
-                    onClick={toggleMode}
-                    disabled={loading || isClosing}
-                    className="ml-2 text-primary-400 hover:text-primary-300 disabled:opacity-50 font-medium transition-colors"
-                  >
-                    {isLogin ? 'Sign up' : 'Sign in'}
-                  </button>
-                </p>
-              </motion.div>
+                  {isLogin ? 'Sign up' : 'Sign in'}
+                </button>
+              </p>
             </motion.div>
-          </div>
-        </>
-      )}
+          </motion.div>
+        </div>
+      </>
     </AnimatePresence>
   );
 });
