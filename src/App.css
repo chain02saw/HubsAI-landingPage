@@ -17,6 +17,89 @@
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Glow text effect */
+.glow-text {
+  background: linear-gradient(45deg, #14b8a6, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 30px rgba(20, 184, 166, 0.5);
+}
+
+/* Animation for hero section */
+@keyframes glow-pulse {
+  0%, 100% { 
+    text-shadow: 0 0 80px rgba(255, 215, 0, 0.9); 
+  }
+  50% { 
+    text-shadow: 0 0 100px rgba(255, 215, 0, 1); 
+  }
+}
+
+/* Dark theme colors (if not using Tailwind classes) */
+.bg-dark-950 { 
+  background-color: #0a0a0a; 
+}
+
+.bg-dark-900 { 
+  background-color: #1a1a1a; 
+}
+
+/* Primary colors (if not using Tailwind classes) */
+.bg-primary-500 { 
+  background-color: #14b8a6; 
+}
+
+.bg-primary-600 { 
+  background-color: #0d9488; 
+}
+
+.text-primary-400 { 
+  color: #2dd4bf; 
+}
+
+.text-primary-500 { 
+  color: #14b8a6; 
+}
+
+/* Ensure proper focus styles for accessibility */
+button:focus,
+input:focus,
+select:focus {
+  outline: 2px solid #14b8a6;
+  outline-offset: 2px;
+}
+
+/* Smooth transitions for interactive elements */
+button,
+input,
+select {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Custom scrollbar for modal content */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: rgba(20, 184, 166, 0.5);
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: rgba(20, 184, 166, 0.7);
+}
 
 @keyframes logo-spin {
   from {

@@ -1,3 +1,5 @@
+// src/App.tsx
+import React from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import TokenizedLogistics from './components/TokenizedLogistics';
@@ -13,14 +15,24 @@ function App() {
     <AuthProvider>
       <SolanaWalletProvider>
         <div className="min-h-screen bg-dark-950 text-white overflow-x-hidden">
+          {/* Animated coin rain background */}
           <CoinRain />
+          
+          {/* Header with navigation and onboarding integration */}
           <Header />
+          
+          {/* Main content */}
           <main>
+            {/* Hero section with onboarding trigger */}
             <Hero />
+            
+            {/* Existing sections */}
             <TokenizedLogistics />
             <Features />
             <Newsletter />
           </main>
+          
+          {/* Footer */}
           <Footer />
         </div>
       </SolanaWalletProvider>

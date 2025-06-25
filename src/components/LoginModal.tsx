@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from './AuthContext';
 
@@ -8,10 +8,38 @@ interface LoginModalProps {
   onLoginSuccess?: () => void;
 }
 
-const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess }) => {
+// Optimized: Moved form validation outside component to prevent recreation
+const validateForm = (formData: any, isLogin: boolean) => {
+  const errors: { [key: string]: string } = {};
+
+  if (!formData.email || !formData.password) {
+    if (!formData.email) errors.email = 'Email is required';
+    if (!formData.password) errors.password = 'Password is required';
+    return { isValid: false, errors };
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    errors.email = 'Please enter a valid email address';
+  }
+
+  if (!isLogin) {
+    if (!formData.name) errors.name = 'Name is required';
+    if (formData.password !== formData.confirmPassword) {
+      errors.confirmPassword = 'Passwords do not match';
+    }
+    if (formData.password.length < 6) {
+      errors.password = 'Password must be at least 6 characters';
+    }
+  }
+
+  return { isValid: Object.keys(errors).length === 0, errors };
+};
+
+export const LoginModal: React.FC<LoginModalProps> = React.memo(({ isOpen, onClose, onLoginSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isClosing, setIsClosing] = useState(false); // Add closing state
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -21,49 +49,29 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess
 
   const { signUp, signIn } = useAuth();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+  // Optimized: Memoized input handler to prevent recreation
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
     if (error) setError(null);
-  };
+  }, [error]);
 
-  const validateForm = () => {
-    if (!formData.email || !formData.password) {
-      setError('Email and password are required');
-      return false;
-    }
+  // Optimized: Memoized form validation
+  const { isValid, errors } = useMemo(() => 
+    validateForm(formData, isLogin), 
+    [formData, isLogin]
+  );
 
-    if (!isLogin) {
-      if (!formData.name) {
-        setError('Name is required');
-        return false;
-      }
-      if (formData.password !== formData.confirmPassword) {
-        setError('Passwords do not match');
-        return false;
-      }
-      if (formData.password.length < 6) {
-        setError('Password must be at least 6 characters');
-        return false;
-      }
-    }
-
-    return true;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) return;
+    if (!isValid || loading || isClosing) return;
 
     setLoading(true);
     setError(null);
 
     try {
       let result;
-      
       if (isLogin) {
         result = await signIn(formData.email, formData.password);
       } else {
@@ -71,19 +79,28 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess
       }
 
       if (result.success) {
+        // Reset form first
         resetForm();
-        onClose();
         
-        // Call onLoginSuccess if provided
-        if (onLoginSuccess && typeof onLoginSuccess === 'function') {
+        // Set closing state to prevent double-clicks
+        setIsClosing(true);
+        
+        // Close modal with a slight delay to ensure smooth transition
+        setTimeout(() => {
+          onClose();
+          
+          // Call onLoginSuccess after modal is fully closed
           setTimeout(() => {
-            try {
-              onLoginSuccess();
-            } catch (err) {
-              console.error('Error calling onLoginSuccess:', err);
+            if (onLoginSuccess && typeof onLoginSuccess === 'function') {
+              try {
+                onLoginSuccess();
+              } catch (err) {
+                console.error('Error calling onLoginSuccess:', err);
+              }
             }
-          }, 300);
-        }
+            setIsClosing(false);
+          }, 300); // Wait for modal close animation
+        }, 100);
       } else {
         setError(result.error || 'Authentication failed');
       }
@@ -93,9 +110,9 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess
     } finally {
       setLoading(false);
     }
-  };
+  }, [isValid, loading, isClosing, isLogin, formData, signIn, signUp, onClose, onLoginSuccess]);
 
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setFormData({
       email: '',
       password: '',
@@ -103,16 +120,126 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess
       name: ''
     });
     setError(null);
-  };
+  }, []);
 
-  const toggleMode = () => {
+  const toggleMode = useCallback(() => {
+    if (loading || isClosing) return; // Prevent toggle during loading or closing
     setIsLogin(!isLogin);
     resetForm();
-  };
+  }, [isLogin, loading, isClosing, resetForm]);
+
+  const handleClose = useCallback(() => {
+    if (loading || isClosing) return; // Prevent close during loading or closing
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose();
+      setIsClosing(false);
+      // Reset form when modal is closed
+      setTimeout(resetForm, 100);
+    }, 100);
+  }, [loading, isClosing, onClose, resetForm]);
+
+  // Don't render if closing to prevent flicker
+  if (isClosing) return null;
+
+  // Optimized: Memoized form fields to prevent recreation
+  const formFields = useMemo(() => (
+    <>
+      {!isLogin && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Full Name
+          </label>
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleInputChange}
+            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 backdrop-blur-sm transition-all"
+            placeholder="Enter your full name"
+            required={!isLogin}
+            disabled={loading}
+          />
+          {errors.name && (
+            <p className="text-red-400 text-sm mt-1">{errors.name}</p>
+          )}
+        </motion.div>
+      )}
+
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-2">
+          Email Address
+        </label>
+        <input
+          type="email"
+          name="email"
+          value={formData.email}
+          onChange={handleInputChange}
+          className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 backdrop-blur-sm transition-all"
+          placeholder="Enter your email"
+          required
+          disabled={loading}
+        />
+        {errors.email && (
+          <p className="text-red-400 text-sm mt-1">{errors.email}</p>
+        )}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-2">
+          Password
+        </label>
+        <input
+          type="password"
+          name="password"
+          value={formData.password}
+          onChange={handleInputChange}
+          className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 backdrop-blur-sm transition-all"
+          placeholder="Enter your password"
+          required
+          disabled={loading}
+        />
+        {errors.password && (
+          <p className="text-red-400 text-sm mt-1">{errors.password}</p>
+        )}
+      </div>
+
+      {!isLogin && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Confirm Password
+          </label>
+          <input
+            type="password"
+            name="confirmPassword"
+            value={formData.confirmPassword}
+            onChange={handleInputChange}
+            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 backdrop-blur-sm transition-all"
+            placeholder="Confirm your password"
+            required={!isLogin}
+            disabled={loading}
+          />
+          {errors.confirmPassword && (
+            <p className="text-red-400 text-sm mt-1">{errors.confirmPassword}</p>
+          )}
+        </motion.div>
+      )}
+    </>
+  ), [isLogin, formData, errors, handleInputChange, loading]);
 
   return (
     <AnimatePresence>
-      {isOpen && (
+      {isOpen && !isClosing && (
         <>
           {/* Backdrop */}
           <motion.div
@@ -120,7 +247,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
+            onClick={handleClose}
           />
 
           {/* Modal */}
@@ -137,10 +264,11 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess
               
               {/* Close button */}
               <motion.button
-                onClick={onClose}
-                className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
+                onClick={handleClose}
+                disabled={loading}
+                className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
+                whileHover={!loading ? { scale: 1.1 } : {}}
+                whileTap={!loading ? { scale: 0.9 } : {}}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -189,102 +317,18 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
               >
-                {/* Name field (signup only) */}
-                <AnimatePresence>
-                  {!isLogin && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
-                        Full Name
-                      </label>
-                      <input
-                        type="text"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 backdrop-blur-sm transition-all"
-                        placeholder="Enter your full name"
-                        required={!isLogin}
-                        disabled={loading}
-                      />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Email field */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 backdrop-blur-sm transition-all"
-                    placeholder="Enter your email"
-                    required
-                    disabled={loading}
-                  />
-                </div>
-
-                {/* Password field */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 backdrop-blur-sm transition-all"
-                    placeholder="Enter your password"
-                    required
-                    disabled={loading}
-                  />
-                </div>
-
-                {/* Confirm Password field (signup only) */}
-                <AnimatePresence>
-                  {!isLogin && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
-                        Confirm Password
-                      </label>
-                      <input
-                        type="password"
-                        name="confirmPassword"
-                        value={formData.confirmPassword}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 backdrop-blur-sm transition-all"
-                        placeholder="Confirm your password"
-                        required={!isLogin}
-                        disabled={loading}
-                      />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {formFields}
 
                 {/* Submit button */}
                 <motion.button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || !isValid || isClosing}
                   className="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-400 hover:to-primary-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all duration-300 border border-primary-400/50 shadow-lg"
-                  whileHover={!loading ? { 
+                  whileHover={!loading && isValid && !isClosing ? { 
                     scale: 1.02,
                     boxShadow: "0 0 30px rgba(20, 184, 166, 0.4)"
                   } : {}}
-                  whileTap={!loading ? { scale: 0.98 } : {}}
+                  whileTap={!loading && isValid && !isClosing ? { scale: 0.98 } : {}}
                 >
                   {loading ? (
                     <div className="flex items-center justify-center">
@@ -309,7 +353,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess
                   <button
                     type="button"
                     onClick={toggleMode}
-                    disabled={loading}
+                    disabled={loading || isClosing}
                     className="ml-2 text-primary-400 hover:text-primary-300 disabled:opacity-50 font-medium transition-colors"
                   >
                     {isLogin ? 'Sign up' : 'Sign in'}
@@ -322,6 +366,8 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess
       )}
     </AnimatePresence>
   );
-};
+});
+
+LoginModal.displayName = 'LoginModal';
 
 export default LoginModal;
