@@ -1,5 +1,5 @@
 // src/components/onboarding/steps/CommunitySummaryStep.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../AuthContext';
 
@@ -27,6 +27,8 @@ interface Brand {
 
 export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ onNext, profileData }) => {
   const { user } = useAuth();
+  const [airdropClaimed, setAirdropClaimed] = useState(false);
+  const [isClaimingAirdrop, setIsClaimingAirdrop] = useState(false);
 
   const mockNFTs: NFT[] = [
     { 
@@ -56,8 +58,21 @@ export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ onNe
     { name: 'Spotify', reward: '2% rewards', logo: '🎵', category: 'Entertainment', tier: 'Bronze' }
   ];
 
-  const handleClaimAirdrop = () => {
-    window.open('https://community.hubsai.io/', '_blank');
+  const handleClaimAirdrop = async () => {
+    setIsClaimingAirdrop(true);
+    
+    // Simulate claiming process
+    setTimeout(() => {
+      setAirdropClaimed(true);
+      setIsClaimingAirdrop(false);
+      
+      // Open airdrop link in new tab so user doesn't lose their progress
+      window.open('https://community.hubsai.io/', '_blank');
+    }, 2000);
+  };
+
+  const handleStartStaking = () => {
+    onNext();
   };
 
   const totalDailyRewards = mockNFTs.reduce((total, nft) => {
@@ -107,7 +122,7 @@ export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ onNe
               Your NFT Collection
             </h3>
             <span className="text-sm text-primary-400 bg-primary-500/20 px-3 py-1 rounded-full">
-              {mockNFTs.length} NFTs
+              {mockNFTs.length} NFTs Ready
             </span>
           </div>
 
@@ -136,8 +151,8 @@ export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ onNe
                   </div>
                   <p className="text-sm text-gray-400 mb-1">Daily Rewards: {nft.stakingRewards}</p>
                   <div className="flex items-center space-x-2">
-                    <span className="text-xs px-2 py-1 rounded-full bg-gray-500/20 text-gray-400">
-                      Ready to Stake
+                    <span className="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-400 border border-green-500/30">
+                      ⚡ Ready to Stake
                     </span>
                   </div>
                 </div>
@@ -227,45 +242,100 @@ export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ onNe
         </div>
       </motion.div>
 
-      {/* Action Buttons */}
+      {/* Enhanced Action Buttons */}
       <motion.div
-        className="text-center space-y-4"
+        className="text-center space-y-6"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.7 }}
       >
         <div className="p-6 bg-gradient-to-r from-primary-500/20 to-primary-600/20 border border-primary-500/30 rounded-2xl">
-          <h4 className="text-xl font-bold text-white mb-2">🚀 You're All Set!</h4>
-          <p className="text-gray-300 mb-4">
-            Welcome to the future of retail rewards. Start staking your NFTs and earning from your favorite brands.
+          <h4 className="text-xl font-bold text-white mb-4">🚀 Choose Your Next Step</h4>
+          <p className="text-gray-300 mb-6">
+            Welcome to the future of retail rewards. You can claim your community airdrop and start staking immediately!
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-2xl mx-auto">
+            {/* Enhanced Airdrop Button */}
             <motion.button
               onClick={handleClaimAirdrop}
-              className="px-8 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-white font-bold rounded-xl transition-all duration-300 border border-yellow-400/50 shadow-lg"
+              disabled={isClaimingAirdrop}
+              className="flex-1 relative overflow-hidden px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 disabled:opacity-70 text-white font-bold rounded-xl transition-all duration-300 border border-yellow-400/50 shadow-lg group"
               whileHover={{ 
-                scale: 1.05,
-                boxShadow: "0 0 30px rgba(255, 193, 7, 0.4)"
+                scale: 1.02,
+                boxShadow: "0 0 40px rgba(255, 193, 7, 0.6)"
               }}
-              whileTap={{ scale: 0.95 }}
+              whileTap={{ scale: 0.98 }}
             >
-              🎁 Claim Your Airdrop
+              {/* Shimmer effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+              
+              <div className="relative flex items-center justify-center gap-2">
+                {isClaimingAirdrop ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    <span>Claiming...</span>
+                  </>
+                ) : airdropClaimed ? (
+                  <>
+                    <span className="text-lg">✅</span>
+                    <span>Airdrop Claimed!</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-lg">🎁</span>
+                    <span>Claim Community Airdrop</span>
+                  </>
+                )}
+              </div>
             </motion.button>
             
+            {/* Enhanced Staking Button */}
             <motion.button
-              onClick={onNext}
-              className="px-8 py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-400 hover:to-primary-500 text-white font-bold rounded-xl transition-all duration-300"
+              onClick={handleStartStaking}
+              className="flex-1 relative overflow-hidden px-8 py-4 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-400 hover:to-primary-500 text-white font-bold rounded-xl transition-all duration-300 border border-primary-400/50 shadow-lg group"
               whileHover={{ 
-                scale: 1.05,
-                boxShadow: "0 0 30px rgba(20, 184, 166, 0.4)"
+                scale: 1.02,
+                boxShadow: "0 0 40px rgba(20, 184, 166, 0.6)"
               }}
-              whileTap={{ scale: 0.95 }}
+              whileTap={{ scale: 0.98 }}
             >
-              Enter Dashboard
+              {/* Shimmer effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+              
+              <div className="relative flex items-center justify-center gap-2">
+                <span className="text-lg">⚡</span>
+                <span>Start Staking & Earning</span>
+              </div>
             </motion.button>
           </div>
+
+          {/* Additional Info */}
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-400">
+            <div className="flex items-center justify-center gap-2">
+              <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
+              <span>Airdrop opens in new tab - you won't lose progress</span>
+            </div>
+            <div className="flex items-center justify-center gap-2">
+              <span className="w-2 h-2 bg-primary-500 rounded-full"></span>
+              <span>Start earning immediately with your NFTs</span>
+            </div>
+          </div>
         </div>
+
+        {/* Success Message */}
+        {airdropClaimed && (
+          <motion.div
+            className="p-4 bg-green-500/10 border border-green-500/20 rounded-xl"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            <p className="text-green-400 font-medium">
+              🎉 Airdrop claimed successfully! The community page opened in a new tab. You can now start staking to maximize your rewards!
+            </p>
+          </motion.div>
+        )}
       </motion.div>
     </div>
   );

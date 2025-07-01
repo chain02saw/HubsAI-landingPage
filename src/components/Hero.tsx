@@ -1,5 +1,5 @@
-// src/components/Hero.tsx - Fixed Modal Conflicts
-import React, { useState, useEffect } from "react";
+// src/components/Hero.tsx - Enhanced with better CTA flow
+import React, { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Connection, PublicKey } from '@solana/web3.js';
@@ -8,34 +8,56 @@ import { OnboardingFlow } from './onboarding/OnboardingFlow';
 
 const Hero: React.FC = () => {
   const [onboardingOpen, setOnboardingOpen] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
   const { connected, publicKey, wallet } = useWallet();
-  const { user, claimWalletAddress } = useAuth();
+  const { user, claimWalletAddress, hasCompletedWalletSetup } = useAuth();
 
-  const handleJoinAirdrop = () => {
-    if (user) {
-      // User is logged in, redirect to community site
+  const handleJoinAirdrop = useCallback(() => {
+    if (user && hasCompletedWalletSetup) {
+      // User is fully set up, redirect to community site
       window.open('https://community.hubsai.io/', '_blank');
+    } else if (user && !hasCompletedWalletSetup) {
+      // User exists but hasn't completed setup, continue onboarding
+      console.log('Opening onboarding to complete setup...');
+      setOnboardingOpen(true);
     } else {
-      // User is not logged in, start onboarding flow
+      // User is not logged in, start full onboarding flow
       console.log('Opening onboarding from Hero...');
       setOnboardingOpen(true);
     }
-  };
+  }, [user, hasCompletedWalletSetup]);
 
   // Optimized: Memoized close handler to prevent recreation
-  const handleOnboardingClose = () => {
+  const handleOnboardingClose = useCallback(() => {
     console.log('Closing onboarding from Hero...');
     setOnboardingOpen(false);
-  };
+  }, []);
 
   // Optimized: Memoized complete handler
-  const handleOnboardingComplete = () => {
+  const handleOnboardingComplete = useCallback(() => {
     console.log('Onboarding completed from Hero...');
     setOnboardingOpen(false);
-    // Optionally redirect to community site after completion
-    // setTimeout(() => {
-    //   window.open('https://community.hubsai.io/', '_blank');
-    // }, 500);
+    // Show success message or redirect as needed
+  }, []);
+
+  // Get appropriate button text based on user state
+  const getButtonText = () => {
+    if (user && hasCompletedWalletSetup) {
+      return 'Claim Your Airdrop';
+    } else if (user && !hasCompletedWalletSetup) {
+      return 'Complete Setup & Claim';
+    } else {
+      return 'Join the Airdrop';
+    }
+  };
+
+  // Get button styling based on user state
+  const getButtonStyle = () => {
+    if (user && hasCompletedWalletSetup) {
+      return 'btn btn-gold btn-xl';
+    } else {
+      return 'btn btn-primary btn-xl';
+    }
   };
   
   useEffect(() => {
@@ -75,10 +97,10 @@ const Hero: React.FC = () => {
   
   return (
     <>
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden hero-section">
         {/* Background */}
         <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat hero-background"
           style={{
             backgroundImage: `url('/assets/background.png')`,
             backgroundSize: "cover",
@@ -94,19 +116,12 @@ const Hero: React.FC = () => {
           }}
         >
           <motion.h1
-            className="mb-6 tracking-wider text-yellow-400 uppercase text-xl sm:text-5xl mb-2 uppercase leading-none"
+            className="mb-6 tracking-wider text-yellow-400 uppercase text-xl sm:text-5xl mb-2 uppercase leading-none coming-soon-text"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.7 }}
             style={{
               fontSize: "clamp(3rem, 3vw, 3rem)",
-              background:
-                "linear-gradient(45deg, #FFD700 0%, #FFA500 25%, #FFD700 50%, #FF8C00 75%, #FFD700 100%)",
-              backgroundSize: "300% 300%",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              textShadow: "0 0 80px rgba(255, 215, 0, 0.9)",
-              animation: "glow-pulse 4s ease-in-out infinite",
               marginTop: "-2vh",
             }}
           >
@@ -120,7 +135,7 @@ const Hero: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.9 }}
           >
-            Meet <span>HubsAI</span>
+            Meet <span className="glow-text">HubsAI</span>
           </motion.h2>
 
           {/* Subtitle */}
@@ -142,24 +157,25 @@ const Hero: React.FC = () => {
           {/* Wallet Status (if logged in) */}
           {user && (connected || claimWalletAddress) && (
             <motion.div
-              className="mb-8 p-1 bg-green-500/10 border border-green-500/20 rounded-xl"
+              className="mb-8 wallet-status"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 1.2 }}
             >
-              <p className="text-green-400 text-sm">
-                ✅ Wallet Connected: {
+              <div className="wallet-status-icon"></div>
+              <span>
+                Wallet Connected: {
                   connected && publicKey 
                     ? `${wallet?.adapter.name} (${publicKey.toBase58().slice(0, 8)}...)`
                     : claimWalletAddress 
                       ? `Claim Wallet (${claimWalletAddress.slice(0, 8)}...)`
                       : ''
                 }
-              </p>
+              </span>
             </motion.div>
           )}
 
-          {/* CTA Button */}
+          {/* Enhanced CTA Button */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -170,24 +186,48 @@ const Hero: React.FC = () => {
             }}
           >
             <motion.button
-              className="bg-teal-500/10 px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base rounded-xl text-white border border-teal-300/50 hover:bg-gray-900 backdrop-blur-sm transition-all duration-300"
+              className={getButtonStyle()}
+              onMouseEnter={() => setIsHovering(true)}
+              onMouseLeave={() => setIsHovering(false)}
               whileHover={{
                 scale: 1.05,
-                boxShadow: "0 0 60px rgba(20, 184, 166, 0.6)",
               }}
               whileTap={{ scale: 0.95 }}
               style={{
                 fontSize: "clamp(1.1rem, 2.5vw, 1.4rem)",
                 padding: "clamp(1rem, 2.5vw, 1.25rem) clamp(2.5rem, 5vw, 3.5rem)",
                 letterSpacing: "0.05em",
+                position: "relative",
+                overflow: "hidden",
               }}
               onClick={handleJoinAirdrop}
             >
-              {user ? 'Claim Your Airdrop' : 'Join the Airdrop'}
+              {/* Enhanced shimmer effect */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                initial={{ x: "-100%" }}
+                animate={{ x: isHovering ? "100%" : "-100%" }}
+                transition={{ duration: 0.8, ease: "easeInOut" }}
+              />
+              
+              {/* Button content */}
+              <div className="relative flex items-center gap-3">
+                <motion.span 
+                  className="text-2xl"
+                  animate={{ 
+                    rotate: isHovering ? [0, -10, 10, 0] : 0,
+                    scale: isHovering ? 1.1 : 1 
+                  }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {user && hasCompletedWalletSetup ? '🎁' : '🚀'}
+                </motion.span>
+                <span>{getButtonText()}</span>
+              </div>
             </motion.button>
           </motion.div>
 
-          {/* Sign in prompt for non-users */}
+          {/* User status messages */}
           {!user && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -201,17 +241,60 @@ const Hero: React.FC = () => {
             </motion.div>
           )}
 
-          {/* User welcome message */}
-          {user && (
+          {user && !hasCompletedWalletSetup && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 1.5 }}
               className="mt-6"
             >
+              <p className="text-yellow-400 text-sm">
+                Almost there! Complete your wallet setup to start earning rewards 💰
+              </p>
+            </motion.div>
+          )}
+
+          {user && hasCompletedWalletSetup && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 1.5 }}
+              className="mt-6 space-y-2"
+            >
               <p className="text-primary-400 text-sm">
                 Welcome back, {user.name}! Ready to claim your rewards? 🎉
               </p>
+              <motion.p 
+                className="text-gray-400 text-xs"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.8 }}
+              >
+                After claiming, visit your dashboard to start staking and earning
+              </motion.p>
+            </motion.div>
+          )}
+
+          {/* Quick Action Buttons for Completed Users */}
+          {user && hasCompletedWalletSetup && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 1.6 }}
+              className="mt-8 flex gap-4 justify-center"
+            >
+              <motion.button
+                className="btn btn-secondary btn-sm"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  // Navigate to dashboard - you might want to trigger this via a prop or context
+                  console.log('Navigate to dashboard');
+                }}
+              >
+                <span>⚡</span>
+                <span>Go to Dashboard</span>
+              </motion.button>
             </motion.div>
           )}
         </div>

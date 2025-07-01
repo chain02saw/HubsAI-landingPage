@@ -1,4 +1,4 @@
-// src/components/Header.tsx - Fixed Double Modal Issue
+// src/components/Header.tsx - Enhanced Navigation Flow
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from './AuthContext';
@@ -47,6 +47,7 @@ const Header: React.FC = () => {
       !onboardingOpen && 
       !loginModalOpen && 
       !walletSelectionOpen &&
+      !dashboardOpen &&
       !hasTriggeredOnboarding.current &&
       !isProcessingAuth.current
     ) {
@@ -58,7 +59,7 @@ const Header: React.FC = () => {
         console.log('Opening onboarding flow for new user');
         setOnboardingOpen(true);
         isProcessingAuth.current = false;
-      }, 1000); // Longer delay to ensure clean transition
+      }, 1000);
     }
 
     return () => {
@@ -66,7 +67,7 @@ const Header: React.FC = () => {
         clearTimeout(onboardingTimeout.current);
       }
     };
-  }, [user, hasCompletedWalletSetup, onboardingOpen, loginModalOpen, walletSelectionOpen]);
+  }, [user, hasCompletedWalletSetup, onboardingOpen, loginModalOpen, walletSelectionOpen, dashboardOpen]);
 
   const handleNavClick = (label: string) => {
     if (label === 'Profile') {
@@ -84,6 +85,8 @@ const Header: React.FC = () => {
       } else {
         setLoginModalOpen(true);
       }
+    } else if (label === 'Dashboard') {
+      setDashboardOpen(true);
     } else if (label === 'Docs - coming soon') {
       console.log('Navigate to docs');
     } else if (label === 'AI Ty - coming soon') {
@@ -98,19 +101,19 @@ const Header: React.FC = () => {
       if (!hasCompletedWalletSetup) {
         return 'Complete Setup';
       }
-      return user.name || 'Dashboard';
+      return 'Dashboard';
     }
     return 'Profile';
   };
 
   const getProfileButtonStyle = () => {
     if (user && !hasCompletedWalletSetup) {
-      return 'bg-yellow-500/20 border-yellow-400/50 hover:bg-yellow-500/30';
+      return 'btn btn-secondary btn-sm bg-yellow-500/20 border-yellow-400/50 hover:bg-yellow-500/30';
     }
     if (user && hasCompletedWalletSetup) {
-      return 'bg-primary-500/20 border-primary-400/50 hover:bg-primary-500/30';
+      return 'btn btn-primary btn-sm';
     }
-    return 'bg-teal-500/10 border-teal-300/50 hover:bg-gray-900';
+    return 'btn btn-secondary btn-sm';
   };
 
   const handleLoginSuccess = () => {
@@ -142,6 +145,7 @@ const Header: React.FC = () => {
 
   const handleBackToLanding = () => {
     setDashboardOpen(false);
+    setProfileData(null);
   };
 
   const handleLoginModalClose = () => {
@@ -149,29 +153,51 @@ const Header: React.FC = () => {
     isProcessingAuth.current = false;
   };
 
+  const handleSignOut = () => {
+    signOut();
+    setDashboardOpen(false);
+    setProfileData(null);
+    setMenuOpen(false);
+    hasTriggeredOnboarding.current = false;
+  };
+
   // Helper function to render button text with mixed styling
   const renderButtonText = (label: string) => {
     if (label === 'Docs - coming soon') {
       return (
         <>
-          Docs - <span className="italic">coming soon</span>
+          Docs - <span className="italic opacity-70">coming soon</span>
         </>
       );
     }
     if (label === 'AI Ty - coming soon') {
       return (
         <>
-          AI Ty - <span className="italic">coming soon</span>
+          AI Ty - <span className="italic opacity-70">coming soon</span>
         </>
       );
     }
     return label;
   };
+
+  // Get navigation items based on user state
+  const getNavItems = () => {
+    const items = ['Docs - coming soon'];
+    
+    if (user && hasCompletedWalletSetup) {
+      items.push('Dashboard');
+    } else {
+      items.push(getProfileButtonText());
+    }
+    
+    items.push('AI Ty - coming soon');
+    return items;
+  };
   
   return (
     <>
       <motion.header
-        className="fixed top-0 left-0 right-0 z-50 bg-transparent"
+        className="fixed top-0 left-0 right-0 z-50 bg-transparent app-header"
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: 'easeOut' }}
@@ -186,26 +212,27 @@ const Header: React.FC = () => {
               onClick={handleBackToLanding}
               style={{ cursor: 'pointer' }}
             >
-              <img src="/assets/hubsai-logo.png" alt="HubsAI" className="h-8 sm:h-12" />
+              <img src="/assets/hubsai-logo.png" alt="HubsAI" className="h-8 sm:h-12 logo" />
             </motion.div>
 
             {/* Navigation Buttons */}
             <div className="hidden md:flex items-center space-x-3">
-              {['Docs - coming soon', getProfileButtonText(), 'AI Ty - coming soon'].map((label, i) => (
+              {getNavItems().map((label, i) => (
                 <motion.button
                   key={`${label}-${i}`}
-                  onClick={() => handleNavClick(label.includes('Dashboard') || label.includes('Complete') ? 'Profile' : label)}
+                  onClick={() => handleNavClick(label.includes('Dashboard') || label.includes('Complete') ? 'Profile' : label === 'Dashboard' ? 'Dashboard' : label)}
                   disabled={loading}
-                  className={`px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base rounded-xl text-white border transition-all duration-300 backdrop-blur-sm ${getProfileButtonStyle()} ${
+                  className={`${getProfileButtonStyle()} ${
                     loading ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                   whileHover={!loading ? { scale: 1.05 } : {}}
                   transition={{ type: 'spring', stiffness: 400, damping: 10 + i * 10 }}
                 >
+                  {/* Status indicator for user buttons */}
                   {user && (label.includes('Dashboard') || label.includes('Complete')) && (
-                    <span className={`w-2 h-2 rounded-full inline-block mr-2 ${
-                      hasCompletedWalletSetup ? 'bg-green-500' : 'bg-yellow-500'
-                    }`}></span>
+                    <span className={`status-dot ${
+                      hasCompletedWalletSetup ? 'green' : 'yellow'
+                    } mr-2`}></span>
                   )}
                   {renderButtonText(label)}
                 </motion.button>
@@ -230,7 +257,7 @@ const Header: React.FC = () => {
           <AnimatePresence>
             {menuOpen && (
               <motion.div
-                className="md:hidden mt-4 space-y-2 overflow-hidden"
+                className="mobile-menu md:hidden"
                 initial={{ opacity: 0, height: 0, y: -20 }}
                 animate={{ opacity: 1, height: 'auto', y: 0 }}
                 exit={{ opacity: 0, height: 0, y: -20 }}
@@ -240,12 +267,12 @@ const Header: React.FC = () => {
                   height: { duration: 0.4 }
                 }}
               >
-                {['Docs - coming soon', getProfileButtonText(), 'AI Ty - coming soon'].map((label, index) => (
+                {getNavItems().map((label, index) => (
                   <motion.button
                     key={`mobile-${label}-${index}`}
-                    onClick={() => handleNavClick(label.includes('Dashboard') || label.includes('Complete') ? 'Profile' : label)}
+                    onClick={() => handleNavClick(label.includes('Dashboard') || label.includes('Complete') ? 'Profile' : label === 'Dashboard' ? 'Dashboard' : label)}
                     disabled={loading}
-                    className={`block w-full text-left px-4 py-2 text-sm rounded-xl text-white border transition-all duration-300 backdrop-blur-sm ${getProfileButtonStyle()} ${
+                    className={`mobile-menu-item w-full text-left ${getProfileButtonStyle().replace('btn-sm', '')} ${
                       loading ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                     initial={{ opacity: 0, x: -20 }}
@@ -258,23 +285,22 @@ const Header: React.FC = () => {
                     whileHover={!loading ? { scale: 1.02 } : {}}
                     whileTap={!loading ? { scale: 0.98 } : {}}
                   >
-                    {user && (label.includes('Dashboard') || label.includes('Complete')) && (
-                      <span className={`w-2 h-2 rounded-full inline-block mr-2 ${
-                        hasCompletedWalletSetup ? 'bg-green-500' : 'bg-yellow-500'
-                      }`}></span>
-                    )}
-                    {renderButtonText(label)}
+                    <div className="flex items-center">
+                      {user && (label.includes('Dashboard') || label.includes('Complete')) && (
+                        <span className={`status-dot ${
+                          hasCompletedWalletSetup ? 'green' : 'yellow'
+                        } mr-3`}></span>
+                      )}
+                      {renderButtonText(label)}
+                    </div>
                   </motion.button>
                 ))}
 
                 {/* Sign out option for mobile when logged in */}
                 {user && (
                   <motion.button
-                    onClick={() => {
-                      signOut();
-                      setMenuOpen(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 text-sm rounded-xl text-red-400 hover:text-red-300 transition-colors"
+                    onClick={handleSignOut}
+                    className="mobile-menu-item w-full text-left text-red-400 hover:text-red-300 transition-colors"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
@@ -283,7 +309,10 @@ const Header: React.FC = () => {
                       duration: 0.3
                     }}
                   >
-                    Sign Out
+                    <div className="flex items-center">
+                      <span className="status-dot red mr-3"></span>
+                      Sign Out
+                    </div>
                   </motion.button>
                 )}
               </motion.div>
@@ -307,16 +336,26 @@ const Header: React.FC = () => {
       <OnboardingFlow 
         isOpen={onboardingOpen}
         onClose={handleOnboardingClose}
-        onComplete={()=>handleOnboardingComplete}
+        onComplete={handleOnboardingComplete}
       />
 
       {/* Dashboard as fullscreen overlay */}
-      {dashboardOpen && (
-        <Dashboard 
-          onBackToLanding={handleBackToLanding}
-          profileData={profileData}
-        />
-      )}
+      <AnimatePresence>
+        {dashboardOpen && (
+          <motion.div
+            className="fixed inset-0 z-[100]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Dashboard 
+              onBackToLanding={handleBackToLanding}
+              profileData={profileData}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };
