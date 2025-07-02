@@ -1,9 +1,7 @@
 // src/components/onboarding/OnboardingFlow.tsx - Enhanced Flow Management
-import React, { useState } from 'react';
+import  { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../AuthContext';
-import { useWallet } from '@solana/wallet-adapter-react';
-import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 
 // Step Components (import from your existing step files)
 import { LoginStep } from './steps/LoginStep';
@@ -17,7 +15,7 @@ import { Dashboard } from './dashboard/Dashboard';
 interface OnboardingFlowProps {
   isOpen: boolean;
   onClose: () => void;
-  onComplete: () => void;
+  onComplete?: (data?: any) => void 
 }
 
 export const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) => {
@@ -26,7 +24,7 @@ export const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowPr
   const [currentStep, setCurrentStep] = useState(1);
   const [profileData, setProfileData] = useState(null);
   const [showDashboard, setShowDashboard] = useState(false);
-  const [airdropClaimed, setAirdropClaimed] = useState(false);
+  const [, setAirdropClaimed] = useState(false);
 
   const handleNext = (data = null) => {
     if (data) setProfileData(data);

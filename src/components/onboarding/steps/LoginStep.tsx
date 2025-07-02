@@ -16,7 +16,7 @@ password: '',
 confirmPassword: '',
 name: ''
 });
-const { signUp, signIn, lookupShopifyOrder, shopifyOrder, trackEvent } = useAuth();
+const { signUp, signIn, lookupShopifyOrder, shopifyOrder } = useAuth();
 const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 setFormData({
 ...formData,
