@@ -242,23 +242,23 @@ export const NFTVault: React.FC = React.memo(() => {
     }
   }, [filter, MOCK_NFTS]);
 
-  const stats = useMemo(() => {
-    const stakedNFTs = MOCK_NFTS.filter((nft) => nft.isStaked);
-    const totalStakedRewards = stakedNFTs.reduce(
-      (total, nft) => total + parseFloat(nft.stakingRewards.split(' ')[0]),
-      0
-    );
-    const totalValue = MOCK_NFTS.reduce(
-      (total, nft) => total + parseFloat(nft.value.replace('$', '')),
-      0
-    );
-    return {
-      totalStaked: stakedNFTs.length,
-      totalNFTs: MOCK_NFTS.length,
-      dailyRewards: totalStakedRewards.toFixed(1),
-      totalValue: totalValue.toFixed(2),
-    };
-  }, [MOCK_NFTS]);
+  // const stats = useMemo(() => {
+  //   const stakedNFTs = MOCK_NFTS.filter((nft) => nft.isStaked);
+  //   const totalStakedRewards = stakedNFTs.reduce(
+  //     (total, nft) => total + parseFloat(nft.stakingRewards.split(' ')[0]),
+  //     0
+  //   );
+  //   const totalValue = MOCK_NFTS.reduce(
+  //     (total, nft) => total + parseFloat(nft.value.replace('$', '')),
+  //     0
+  //   );
+  //   return {
+  //     totalStaked: stakedNFTs.length,
+  //     totalNFTs: MOCK_NFTS.length,
+  //     dailyRewards: totalStakedRewards.toFixed(1),
+  //     totalValue: totalValue.toFixed(2),
+  //   };
+  // }, [MOCK_NFTS]);
 
   const handleStakeToggle = useCallback(
     (nftId: number) => {
