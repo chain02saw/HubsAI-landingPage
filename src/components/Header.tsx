@@ -1,4 +1,4 @@
-// src/components/Header.tsx - Enhanced Navigation Flow
+// src/components/Header.tsx - Fixed Navigation Flow
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from './AuthContext';
@@ -12,8 +12,10 @@ const Header: React.FC = () => {
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [walletSelectionOpen, setWalletSelectionOpen] = useState(false);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
+  const [startFromProfile, setStartFromProfile] = useState(false);
   const [dashboardOpen, setDashboardOpen] = useState(false);
   const [profileData, setProfileData] = useState<any>(null);
+  const [userExplicitlyClosed, setUserExplicitlyClosed] = useState(false); // Track explicit close
   
   const { user, loading, hasCompletedWalletSetup, signOut } = useAuth();
   
@@ -21,19 +23,22 @@ const Header: React.FC = () => {
   const hasTriggeredOnboarding = useRef(false);
   const isProcessingAuth = useRef(false);
   const onboardingTimeout = useRef<NodeJS.Timeout | null>(null);
+  const justSignedUp = useRef(false); // Track if user just signed up
 
   // Reset triggers when user logs out
   useEffect(() => {
     if (!user) {
       hasTriggeredOnboarding.current = false;
       isProcessingAuth.current = false;
+      justSignedUp.current = false;
+      setUserExplicitlyClosed(false);
       if (onboardingTimeout.current) {
         clearTimeout(onboardingTimeout.current);
       }
     }
   }, [user]);
 
-  // Auto-open onboarding for new users - with proper timing control
+  // Auto-open onboarding for new users - with improved logic
   useEffect(() => {
     // Only trigger if:
     // 1. User exists
@@ -41,6 +46,8 @@ const Header: React.FC = () => {
     // 3. No modals are currently open
     // 4. Haven't already triggered onboarding
     // 5. Not currently processing authentication
+    // 6. User hasn't explicitly closed the modal
+    // 7. Not manually triggered from profile button
     if (
       user && 
       !hasCompletedWalletSetup && 
@@ -49,7 +56,9 @@ const Header: React.FC = () => {
       !walletSelectionOpen &&
       !dashboardOpen &&
       !hasTriggeredOnboarding.current &&
-      !isProcessingAuth.current
+      !isProcessingAuth.current &&
+      !userExplicitlyClosed &&
+      !startFromProfile
     ) {
       console.log('New user detected, scheduling onboarding flow...');
       hasTriggeredOnboarding.current = true;
@@ -67,22 +76,27 @@ const Header: React.FC = () => {
         clearTimeout(onboardingTimeout.current);
       }
     };
-  }, [user, hasCompletedWalletSetup, onboardingOpen, loginModalOpen, walletSelectionOpen, dashboardOpen]);
+  }, [user, hasCompletedWalletSetup, onboardingOpen, loginModalOpen, walletSelectionOpen, dashboardOpen, startFromProfile, userExplicitlyClosed]);
 
   const handleNavClick = (label: string) => {
     if (label === 'Profile') {
       if (user) {
         if (!hasCompletedWalletSetup) {
           // User manually clicked profile before auto-onboarding
+          // Start from claim wallet step (STEP 1) since they're already logged in
           hasTriggeredOnboarding.current = true;
           if (onboardingTimeout.current) {
             clearTimeout(onboardingTimeout.current);
           }
+          setStartFromProfile(true);
+          setUserExplicitlyClosed(false); // Reset explicit close flag
           setOnboardingOpen(true);
         } else {
           setDashboardOpen(true);
         }
       } else {
+        // User not logged in, show login modal first
+        setStartFromProfile(true);
         setLoginModalOpen(true);
       }
     } else if (label === 'Dashboard') {
@@ -119,27 +133,41 @@ const Header: React.FC = () => {
   const handleLoginSuccess = () => {
     console.log('Login successful, setting processing flag');
     isProcessingAuth.current = true;
+    justSignedUp.current = true; // Mark that user just signed up/logged in
     
     // Close login modal first
     setLoginModalOpen(false);
     
-    // Don't automatically trigger onboarding here - let the useEffect handle it
-    // after a proper delay to avoid double modals
+    // If user came from profile button, start onboarding immediately
+    // Skip login step since they just logged in
+    if (startFromProfile) {
+      setTimeout(() => {
+        setOnboardingOpen(true);
+        isProcessingAuth.current = false;
+      }, 500);
+    }
+    // Otherwise, let the useEffect handle auto-onboarding for new users
   };
 
   const handleOnboardingComplete = (data: any) => {
     console.log('Onboarding completed');
     setProfileData(data);
     setOnboardingOpen(false);
+    setStartFromProfile(false);
+    setUserExplicitlyClosed(false);
     setDashboardOpen(true);
     isProcessingAuth.current = false;
+    justSignedUp.current = false;
   };
 
   const handleOnboardingClose = () => {
-    console.log('Onboarding closed');
+    console.log('Onboarding closed by user');
     setOnboardingOpen(false);
+    setStartFromProfile(false);
+    setUserExplicitlyClosed(true); // Mark that user explicitly closed
     isProcessingAuth.current = false;
-    // Reset trigger in case user wants to try again later
+    justSignedUp.current = false;
+    // Reset trigger so user can manually open later if needed
     hasTriggeredOnboarding.current = false;
   };
 
@@ -150,6 +178,7 @@ const Header: React.FC = () => {
 
   const handleLoginModalClose = () => {
     setLoginModalOpen(false);
+    setStartFromProfile(false);
     isProcessingAuth.current = false;
   };
 
@@ -159,6 +188,9 @@ const Header: React.FC = () => {
     setProfileData(null);
     setMenuOpen(false);
     hasTriggeredOnboarding.current = false;
+    setStartFromProfile(false);
+    setUserExplicitlyClosed(false);
+    justSignedUp.current = false;
   };
 
   // Helper function to render button text with mixed styling
@@ -337,6 +369,8 @@ const Header: React.FC = () => {
         isOpen={onboardingOpen}
         onClose={handleOnboardingClose}
         onComplete={handleOnboardingComplete}
+        startFromProfile={startFromProfile}
+        skipLoginStep={justSignedUp.current} // New prop to skip login step
       />
 
       {/* Dashboard as fullscreen overlay */}

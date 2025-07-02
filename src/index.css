@@ -1344,3 +1344,472 @@ a:focus-visible {
     transform: none;
   }
 }
+
+/* =============================================
+   DASHBOARD SPECIFIC FIXES AND ENHANCEMENTS
+   Add these styles to your existing index.css file
+   ============================================= */
+
+/* Fix Dashboard Scrollbar Issues */
+.dashboard-container {
+  min-height: 100vh;
+  max-height: 100vh;
+  overflow: hidden; /* Prevent unnecessary scrollbars */
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: calc(100vh - 120px); /* Account for header */
+}
+
+.dashboard-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dashboard-content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.dashboard-content::-webkit-scrollbar-thumb {
+  background: var(--color-primary-500);
+  border-radius: 3px;
+}
+
+.dashboard-content::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary-400);
+}
+/* =============================================
+   ENHANCED CHECKBOX STYLES - SIMPLE & SMART
+   ============================================= */
+
+/* Basic Checkbox Container */
+.checkbox-container {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  cursor: pointer;
+  user-select: none;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  gap: 12px;
+}
+
+.checkbox-container:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(20, 184, 166, 0.3);
+}
+
+/* Hide Default Checkbox */
+.checkbox-input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+/* Custom Checkbox Appearance */
+.checkbox-custom {
+  position: relative;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+}
+
+/* Checkmark */
+.checkbox-custom::after {
+  content: '';
+  position: absolute;
+  display: none;
+  left: 6px;
+  top: 2px;
+  width: 4px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* Checked State */
+.checkbox-input:checked + .checkbox-custom {
+  background: var(--color-primary-500);
+  border-color: var(--color-primary-400);
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+}
+
+.checkbox-input:checked + .checkbox-custom::after {
+  display: block;
+}
+
+/* Hover State */
+.checkbox-container:hover .checkbox-custom {
+  border-color: var(--color-primary-400);
+  background: rgba(20, 184, 166, 0.1);
+}
+
+/* Focus State */
+.checkbox-input:focus + .checkbox-custom {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2);
+}
+
+/* Checkbox Label */
+.checkbox-label {
+  flex: 1;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.875rem;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+/* Simple checkbox variant for interests grid */
+.checkbox-container.simple {
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  gap: 8px;
+}
+
+.checkbox-container.simple:hover {
+  background: none;
+  border-color: transparent;
+}
+
+.checkbox-container.simple .checkbox-label {
+  margin-left: 8px;
+  flex: none;
+}
+
+/* =============================================
+   TOGGLE SWITCH STYLES (FOR SETTINGS)
+   ============================================= */
+
+.toggle-container {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.toggle-input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 2px;
+  bottom: 2px;
+  background: white;
+  border-radius: 50%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-input:checked + .toggle-slider {
+  background: var(--color-primary-500);
+  border-color: var(--color-primary-400);
+  box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.1);
+}
+
+.toggle-input:checked + .toggle-slider:before {
+  transform: translateX(24px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.toggle-container:hover .toggle-slider {
+  border-color: var(--color-primary-400);
+}
+
+.toggle-input:focus + .toggle-slider {
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2);
+}
+
+/* =============================================
+   ENHANCED FORM CONTROLS
+   ============================================= */
+
+.form-checkbox {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.form-checkbox:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(20, 184, 166, 0.3);
+}
+
+.form-checkbox-content {
+  flex: 1;
+}
+
+.form-checkbox-title {
+  font-weight: 600;
+  color: white;
+  margin-bottom: 4px;
+  font-size: 0.9rem;
+}
+
+.form-checkbox-description {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+/* =============================================
+   RADIO BUTTON STYLES
+   ============================================= */
+
+.radio-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.radio-input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.radio-custom {
+  position: relative;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+}
+
+.radio-custom::after {
+  content: '';
+  position: absolute;
+  display: none;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.radio-input:checked + .radio-custom {
+  background: var(--color-primary-500);
+  border-color: var(--color-primary-400);
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+}
+
+.radio-input:checked + .radio-custom::after {
+  display: block;
+}
+
+.radio-container:hover .radio-custom {
+  border-color: var(--color-primary-400);
+  background: rgba(20, 184, 166, 0.1);
+}
+
+.radio-input:focus + .radio-custom {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2);
+}
+
+.radio-label {
+  margin-left: 12px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.875rem;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+/* =============================================
+   ACCESSIBILITY IMPROVEMENTS
+   ============================================= */
+
+/* Disable select highlight on mobile */
+.checkbox-container,
+.radio-container,
+.toggle-container {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* High contrast mode adjustments */
+@media (prefers-contrast: high) {
+  .checkbox-custom,
+  .radio-custom {
+    border-width: 3px;
+  }
+  
+  .toggle-slider {
+    border-width: 2px;
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .checkbox-custom,
+  .radio-custom,
+  .toggle-slider,
+  .toggle-slider:before {
+    transition: none;
+  }
+}
+
+/* =============================================
+   MOBILE OPTIMIZATIONS
+   ============================================= */
+
+@media (max-width: 768px) {
+  .checkbox-custom,
+  .radio-custom {
+    width: 22px;
+    height: 22px;
+  }
+  
+  .checkbox-custom::after {
+    left: 7px;
+    top: 3px;
+  }
+  
+  .toggle-container {
+    width: 52px;
+    height: 28px;
+  }
+  
+  .toggle-slider:before {
+    height: 22px;
+    width: 22px;
+    left: 2px;
+    bottom: 2px;
+  }
+  
+  .toggle-input:checked + .toggle-slider:before {
+    transform: translateX(24px);
+  }
+  
+  .form-checkbox {
+    padding: 20px 16px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
+  .checkbox-label,
+  .radio-label {
+    font-size: 1rem;
+  }
+  
+  .dashboard-content {
+    max-height: calc(100vh - 100px); /* Smaller header on mobile */
+  }
+  
+  /* Improve checkbox layout on mobile */
+  .checkbox-container {
+    padding: 20px 16px;
+  }
+  
+  .checkbox-container.simple {
+    padding: 0;
+  }
+}
+
+/* =============================================
+   DASHBOARD TOOLTIP FIXES
+   ============================================= */
+
+/* Ensure tooltips appear above other elements */
+.group:hover .absolute {
+  z-index: 20;
+}
+
+/* Improve tooltip visibility */
+.group .absolute {
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* =============================================
+   FORM VALIDATION ENHANCEMENTS
+   ============================================= */
+
+/* Invalid state for checkboxes and radios */
+.checkbox-input:invalid + .checkbox-custom,
+.radio-input:invalid + .radio-custom {
+  border-color: var(--color-error);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Success state */
+.checkbox-input:valid + .checkbox-custom,
+.radio-input:valid + .radio-custom {
+  border-color: var(--color-success);
+}
+
+/* Disabled state */
+.checkbox-container.disabled,
+.radio-container.disabled,
+.toggle-container.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.checkbox-container.disabled .checkbox-custom,
+.radio-container.disabled .radio-custom,
+.toggle-container.disabled .toggle-slider {
+  cursor: not-allowed;
+}

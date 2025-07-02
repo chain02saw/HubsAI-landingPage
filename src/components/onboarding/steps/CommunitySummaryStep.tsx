@@ -20,9 +20,10 @@ interface NFT {
 interface Brand {
   name: string;
   reward: string;
-  logo: string;
+  logo: string; // This will be a URL to the actual brand logo
   category: string;
   tier: 'Gold' | 'Silver' | 'Bronze';
+  description: string;
 }
 
 export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ onNext, profileData }) => {
@@ -49,13 +50,72 @@ export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ onNe
     }
   ];
 
+  // Updated with real brand partners and their logos
   const topBrands: Brand[] = [
-    { name: 'Nike', reward: '5% cashback', logo: '👟', category: 'Fashion', tier: 'Gold' },
-    { name: 'Apple', reward: '3% rewards', logo: '🍎', category: 'Technology', tier: 'Gold' },
-    { name: 'Amazon', reward: '2% back', logo: '📦', category: 'Shopping', tier: 'Silver' },
-    { name: 'Starbucks', reward: '4% rewards', logo: '☕', category: 'Food', tier: 'Gold' },
-    { name: 'Uber', reward: '3% back', logo: '🚗', category: 'Transport', tier: 'Silver' },
-    { name: 'Spotify', reward: '2% rewards', logo: '🎵', category: 'Entertainment', tier: 'Bronze' }
+    { 
+      name: 'Nike', 
+      reward: '5% cashback', 
+      logo: 'https://1000logos.net/wp-content/uploads/2021/11/Nike-Logo-500x281.png',
+      category: 'Fashion & Sports', 
+      tier: 'Gold',
+      description: 'Premium athletic wear and footwear'
+    },
+    { 
+      name: 'Apple', 
+      reward: '3% rewards', 
+      logo: 'https://1000logos.net/wp-content/uploads/2016/10/Apple-Logo-500x281.png',
+      category: 'Technology', 
+      tier: 'Gold',
+      description: 'Innovation in technology and design'
+    },
+    { 
+      name: 'Amazon', 
+      reward: '2% back', 
+      logo: 'https://1000logos.net/wp-content/uploads/2016/10/Amazon-Logo-500x281.png',
+      category: 'E-commerce', 
+      tier: 'Silver',
+      description: 'Everything from A to Z'
+    },
+    { 
+      name: 'Starbucks', 
+      reward: '4% rewards', 
+      logo: 'https://1000logos.net/wp-content/uploads/2020/05/Starbucks-Logo-500x281.png',
+      category: 'Food & Beverage', 
+      tier: 'Gold',
+      description: 'Premium coffee and beverages'
+    },
+    { 
+      name: 'Tesla', 
+      reward: '3% back', 
+      logo: 'https://1000logos.net/wp-content/uploads/2018/03/Tesla-Logo-500x281.png',
+      category: 'Automotive', 
+      tier: 'Gold',
+      description: 'Electric vehicles and clean energy'
+    },
+    { 
+      name: 'Microsoft', 
+      reward: '2.5% rewards', 
+      logo: 'https://1000logos.net/wp-content/uploads/2020/08/Microsoft-Logo-500x281.png',
+      category: 'Technology', 
+      tier: 'Silver',
+      description: 'Cloud computing and productivity tools'
+    },
+    { 
+      name: 'Adidas', 
+      reward: '4% cashback', 
+      logo: 'https://1000logos.net/wp-content/uploads/2019/06/Adidas-Logo-500x281.png',
+      category: 'Fashion & Sports', 
+      tier: 'Gold',
+      description: 'Sports apparel and lifestyle products'
+    },
+    { 
+      name: 'Best Buy', 
+      reward: '2% back', 
+      logo: 'https://1000logos.net/wp-content/uploads/2016/10/Best-Buy-Logo-500x281.png',
+      category: 'Electronics', 
+      tier: 'Silver',
+      description: 'Consumer electronics and technology'
+    }
   ];
 
   const handleClaimAirdrop = async () => {
@@ -96,7 +156,7 @@ export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ onNe
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          Hey {profileData?.fullName || user?.name || 'there'}! Your rewards journey starts here
+          Hey {profileData?.username || user?.name || 'there'}! Your rewards journey starts here
         </motion.p>
         <motion.p
           className="text-gray-400"
@@ -167,7 +227,7 @@ export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ onNe
           </div>
         </motion.div>
 
-        {/* Top Brand Rewards */}
+        {/* Brand Partners with Real Logos */}
         <motion.div
           className="glass rounded-2xl p-6"
           initial={{ opacity: 0, x: 50 }}
@@ -177,7 +237,7 @@ export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ onNe
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-2xl font-bold text-white flex items-center">
               <span className="w-3 h-3 bg-yellow-500 rounded-full mr-3 animate-pulse"></span>
-              Brand Rewards
+              Brand Partners
             </h3>
             <span className="text-sm text-yellow-400 bg-yellow-500/20 px-3 py-1 rounded-full">
               {topBrands.length} Partners
@@ -193,13 +253,26 @@ export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ onNe
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 + index * 0.05 }}
               >
-                <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center">
-                  <span className="text-xl">{brand.logo}</span>
+                <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center p-1">
+                  <img 
+                    src={brand.logo} 
+                    alt={`${brand.name} logo`}
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      // Fallback to text if image fails to load
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const fallback = document.createElement('span');
+                      fallback.textContent = brand.name.charAt(0);
+                      fallback.className = 'text-black font-bold';
+                      target.parentNode?.appendChild(fallback);
+                    }}
+                  />
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center space-x-2 mb-1">
-                    <p className="font-medium text-white">{brand.name}</p>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
+                    <p className="font-medium text-white truncate">{brand.name}</p>
+                    <span className={`text-xs px-2 py-1 rounded-full flex-shrink-0 ${
                       brand.tier === 'Gold' ? 'bg-yellow-500/20 text-yellow-400' :
                       brand.tier === 'Silver' ? 'bg-gray-400/20 text-gray-400' :
                       'bg-orange-500/20 text-orange-400'
@@ -208,9 +281,9 @@ export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ onNe
                     </span>
                   </div>
                   <p className="text-sm text-gray-400 mb-1">{brand.reward}</p>
-                  <p className="text-xs text-gray-500">{brand.category}</p>
+                  <p className="text-xs text-gray-500 truncate">{brand.category}</p>
                 </div>
-                <span className="text-primary-400 text-sm">Available</span>
+                <span className="text-primary-400 text-sm flex-shrink-0">Available</span>
               </motion.div>
             ))}
           </div>

@@ -1,9 +1,9 @@
-// src/components/onboarding/OnboardingFlow.tsx - Enhanced Flow Management
-import  { useState } from 'react';
+// src/components/onboarding/OnboardingFlow.tsx - Updated Flow Management
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../AuthContext';
 
-// Step Components (import from your existing step files)
+// Step Components
 import { LoginStep } from './steps/LoginStep';
 import { ClaimWalletStep } from './steps/ClaimWalletStep';
 import { ConnectWalletStep } from './steps/ConnectWalletStep';
@@ -11,27 +11,54 @@ import { ProfileSetupStep } from './steps/ProfileSetupStep';
 import { CommunitySummaryStep } from './steps/CommunitySummaryStep';
 import { Dashboard } from './dashboard/Dashboard';
 
-// Main OnboardingFlow component with enhanced flow management
 interface OnboardingFlowProps {
   isOpen: boolean;
   onClose: () => void;
-  onComplete?: (data?: any) => void 
+  onComplete?: (data?: any) => void;
+  startFromProfile?: boolean;
+  skipLoginStep?: boolean; // New prop to skip login step
 }
 
-export const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowProps) => {
-  // All hooks must be called before any conditional logic
-  const { setWalletSetupComplete } = useAuth();
-  const [currentStep, setCurrentStep] = useState(1);
+export const OnboardingFlow = ({ 
+  isOpen, 
+  onClose, 
+  onComplete, 
+  startFromProfile = false,
+  skipLoginStep = false 
+}: OnboardingFlowProps) => {
+  const { setWalletSetupComplete, user } = useAuth();
+  
+  // Improved initial step logic
+  const getInitialStep = () => {
+    // If user just signed up or logged in from profile, skip login step
+    if (skipLoginStep && user) {
+      return 1; // Start from Claim Wallet step
+    }
+    // If user exists and starting from profile, skip login
+    if (user && startFromProfile) {
+      return 1; // Start from Claim Wallet step
+    }
+    // If user clicked profile but not logged in, show login first
+    if (startFromProfile && !user) {
+      return 0; // Show login step
+    }
+    // Normal flow - if user exists, skip login
+    return user ? 1 : 0;
+  };
+  
+  const [currentStep, setCurrentStep] = useState(getInitialStep());
   const [profileData, setProfileData] = useState(null);
   const [showDashboard, setShowDashboard] = useState(false);
-  const [, setAirdropClaimed] = useState(false);
 
+  // Handle step progression properly
   const handleNext = (data = null) => {
     if (data) setProfileData(data);
     
-    if (currentStep === 5) {
-      // After community summary, user chooses their path
-      // This will be handled by the CommunitySummaryStep component
+    console.log(`Advancing from step ${currentStep} to step ${currentStep + 1}`);
+    
+    if (currentStep === 4) {
+      // After community summary, go to dashboard
+      handleGoToDashboard();
     } else {
       setCurrentStep(currentStep + 1);
     }
@@ -45,16 +72,15 @@ export const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowPr
     console.log('Going to dashboard after onboarding');
     setWalletSetupComplete();
     setShowDashboard(true);
-    setCurrentStep(6); // Set to dashboard step
+    setCurrentStep(5); // Set to dashboard step
   };
 
   const handleBackToLanding = () => {
     console.log('handleBackToLanding called');
     setWalletSetupComplete();
     setShowDashboard(false);
-    setCurrentStep(1);
+    setCurrentStep(getInitialStep()); // Reset to initial step
     setProfileData(null);
-    setAirdropClaimed(false);
     
     if (onComplete) onComplete();
     if (onClose) onClose();
@@ -62,22 +88,22 @@ export const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowPr
 
   const renderStep = () => {
     switch (currentStep) {
-      case 1: 
+      case 0: // Login/Signup step only
         return <LoginStep onNext={handleNext} onClose={onClose} />;
-      case 2: 
+      case 1: // Claim Wallet step only
         return <ClaimWalletStep onNext={handleNext} onSkip={handleSkip} />;
-      case 3: 
+      case 2: // Connect External Wallet
         return <ConnectWalletStep onNext={handleNext} onSkip={handleSkip} />;
-      case 4: 
+      case 3: // Profile Setup
         return <ProfileSetupStep onNext={handleNext} />;
-      case 5: 
+      case 4: // Community Summary
         return (
           <CommunitySummaryStep 
             onNext={handleGoToDashboard} 
             profileData={profileData || {}} 
           />
         );
-      case 6: 
+      case 5: // Dashboard
         return (
           <Dashboard 
             onBackToLanding={handleBackToLanding} 
@@ -85,12 +111,16 @@ export const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowPr
           />
         );
       default: 
+        // Default fallback based on user authentication state
+        if (user) {
+          return <ClaimWalletStep onNext={handleNext} onSkip={handleSkip} />;
+        }
         return <LoginStep onNext={handleNext} onClose={onClose} />;
     }
   };
 
   // If showing dashboard, render it fullscreen
-  if (showDashboard || currentStep === 6) {
+  if (showDashboard || currentStep === 5) {
     return (
       <div className="fixed inset-0 bg-dark-950 z-[100]">
         <Dashboard 
@@ -101,10 +131,30 @@ export const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowPr
     );
   }
 
-  // Conditional rendering AFTER all hooks are called
   if (!isOpen) {
     return null;
   }
+
+  // Calculate total steps and display step based on flow
+  const getTotalSteps = () => {
+    // If we started with a user or skipped login, we have 4 steps instead of 5
+    if (skipLoginStep || (user && startFromProfile)) {
+      return 4; // Claim Wallet, Connect Wallet, Profile Setup, Community Summary
+    }
+    return 5; // Login, Claim Wallet, Connect Wallet, Profile Setup, Community Summary
+  };
+  
+  const getDisplayStep = () => {
+    // If we skipped login, adjust the display
+    if (skipLoginStep || (user && startFromProfile)) {
+      // Current step is the display step (since we skipped step 0)
+      return currentStep === 0 ? 1 : currentStep;
+    }
+    return currentStep + 1; // Normal flow with login step
+  };
+
+  const totalSteps = getTotalSteps();
+  const displayStep = getDisplayStep();
 
   return (
     <AnimatePresence>
@@ -126,21 +176,21 @@ export const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowPr
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ duration: 0.3 }}
           >
-            {/* Progress indicator - only show for steps 1-5 */}
-            {currentStep <= 5 && (
+            {/* Progress indicator - show for setup steps only */}
+            {currentStep < totalSteps && (
               <div className="flex items-center justify-center mb-8 relative z-10 pt-6">
                 <div className="flex space-x-2">
-                  {[1, 2, 3, 4, 5].map((step) => (
+                  {Array.from({ length: totalSteps }, (_, i) => (
                     <motion.div
-                      key={step}
+                      key={i + 1}
                       className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                        step <= currentStep 
+                        i + 1 <= displayStep
                           ? 'bg-primary-500 shadow-lg shadow-primary-500/50' 
                           : 'bg-white/20'
                       }`}
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      transition={{ delay: step * 0.1 }}
+                      transition={{ delay: i * 0.1 }}
                     />
                   ))}
                 </div>
@@ -150,13 +200,13 @@ export const OnboardingFlow = ({ isOpen, onClose, onComplete }: OnboardingFlowPr
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.5 }}
                 >
-                  Step {currentStep} of 5
+                  Step {displayStep} of {totalSteps}
                 </motion.span>
               </div>
             )}
 
-            {/* Close button - only show for steps 1-5 */}
-            {currentStep <= 5 && (
+            {/* Close button - show for setup steps only */}
+            {currentStep < totalSteps && (
               <motion.button
                 onClick={onClose}
                 className="modal-close"

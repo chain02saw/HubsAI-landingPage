@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from './AuthContext';
@@ -103,6 +102,11 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess
     resetForm();
   };
 
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -113,7 +117,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
+            onClick={handleClose}
           />
 
           {/* Modal */}
@@ -124,13 +128,14 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               transition={{ duration: 0.3 }}
+              onClick={(e) => e.stopPropagation()}
             >
               {/* Background glow effect */}
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-teal-600/5 rounded-3xl" />
               
               {/* Close button */}
               <motion.button
-                onClick={onClose}
+                onClick={handleClose}
                 className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}

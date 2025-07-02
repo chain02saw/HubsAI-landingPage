@@ -21,9 +21,10 @@ const Hero: React.FC = () => {
       console.log('Opening onboarding to complete setup...');
       setOnboardingOpen(true);
     } else {
-      // User is not logged in, start full onboarding flow
-      console.log('Opening onboarding from Hero...');
-      setOnboardingOpen(true);
+      // User is not logged in, go directly to airdrop link
+      // No need to show onboarding modal for airdrop access
+      console.log('User not signed up, opening airdrop link directly...');
+      window.open('https://community.hubsai.io/', '_blank');
     }
   }, [user, hasCompletedWalletSetup]);
 
@@ -236,7 +237,7 @@ const Hero: React.FC = () => {
               className="mt-6"
             >
               <p className="text-gray-400 text-sm">
-                New to HubsAI? Click above to create your account and claim your NFT rewards!
+                🎉 Access the airdrop directly! Create an account later to unlock full platform features.
               </p>
             </motion.div>
           )}
@@ -300,11 +301,12 @@ const Hero: React.FC = () => {
         </div>
       </section>
 
-      {/* Onboarding Flow - Only triggered from Hero button click */}
+      {/* Onboarding Flow - Only triggered for users who need to complete setup */}
       <OnboardingFlow 
         isOpen={onboardingOpen}
         onClose={handleOnboardingClose}
         onComplete={handleOnboardingComplete}
+        skipLoginStep={true} // Skip login since user already logged in if they get here
       />
     </>
   );
