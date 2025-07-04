@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 
 interface CommunitySummaryStepProps {
   profileData: any;
+  onNext: () => void;
 }
 
 interface NFT {
@@ -26,7 +27,7 @@ interface Brand {
   description: string;
 }
 
-export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ profileData }) => {
+export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ profileData, onNext }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [airdropClaimed, setAirdropClaimed] = useState(false);
@@ -134,6 +135,7 @@ export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ prof
 
   const handleStartStaking = () => {
     navigate('/dashboard');
+    onNext();
   };
 
   const totalDailyRewards = mockNFTs.reduce((total, nft) => {

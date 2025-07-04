@@ -6,9 +6,10 @@ import { signInWithBackend, signUpWithBackend } from '../../../api/authAPI';
 interface LoginStepProps {
   onNext: () => void;
   onSuccess?: () => void; // New prop for handling successful auth
+  onClose: () => void; // Add onClose prop
 }
 
-export const LoginStep: React.FC<LoginStepProps> = ({ onNext, onSuccess }) => {
+export const LoginStep: React.FC<LoginStepProps> = ({ onNext, onSuccess, onClose }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -87,8 +88,25 @@ export const LoginStep: React.FC<LoginStepProps> = ({ onNext, onSuccess }) => {
     }
   };
 
+  const handleClose = () => {
+    onClose(); // Add this function to use onClose prop
+  };
+
   return (
     <div className="max-w-md mx-auto">
+      {/* Close button */}
+      <div className="absolute top-4 right-4">
+        <button
+          onClick={handleClose}
+          className="text-slate-400 hover:text-white transition-colors"
+          aria-label="Close"
+        >
+          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
       {/* Header */}
       <div className="text-center mb-8">
         <motion.div
