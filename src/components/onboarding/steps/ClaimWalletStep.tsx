@@ -10,7 +10,7 @@ interface ClaimWalletStepProps {
 }
 
 export const ClaimWalletStep: React.FC<ClaimWalletStepProps> = ({ onNext, onSkip, onBack }) => {
-  const { lookupShopifyOrder, shopifyOrder } = useAuth();
+  const { shopifyOrder } = useAuth();
   const [loading, setLoading] = useState(false);
   const [emailLoading, setEmailLoading] = useState(false);
   const [created, setCreated] = useState(false);

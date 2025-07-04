@@ -5,7 +5,6 @@ import { useAuth } from '../../AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 interface CommunitySummaryStepProps {
-  onNext: () => void;
   profileData: any;
 }
 
@@ -27,7 +26,7 @@ interface Brand {
   description: string;
 }
 
-export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ onNext, profileData }) => {
+export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ profileData }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [airdropClaimed, setAirdropClaimed] = useState(false);
