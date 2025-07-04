@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../AuthContext';
+import { signInWithBackend, signUpWithBackend } from '../../../api/authAPI';
 
 interface LoginStepProps {
   onNext: () => void;
@@ -20,7 +21,7 @@ export const LoginStep: React.FC<LoginStepProps> = ({ onNext, onClose, onSuccess
     name: ''
   });
 
-  const { signUp, signIn, lookupShopifyOrder, shopifyOrder } = useAuth();
+  const { lookupShopifyOrder, shopifyOrder } = useAuth();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -64,16 +65,17 @@ export const LoginStep: React.FC<LoginStepProps> = ({ onNext, onClose, onSuccess
     try {
       let result;
       if (isLogin) {
-        result = await signIn(formData.email, formData.password);
+        result = await signInWithBackend(formData.email, formData.password);
       } else {
-        result = await signUp(formData.email, formData.password, formData.name);
+        result = await signUpWithBackend(formData.name, formData.email, formData.password);
       }
 
       if (result.success) {
-        // For both login and signup, trigger success handler
         if (onSuccess) {
           onSuccess();
         } else {
+          console.log("result.result", result);
+          localStorage.setItem('user', JSON.stringify(result.result));
           onNext();
         }
       } else {
@@ -106,7 +108,7 @@ export const LoginStep: React.FC<LoginStepProps> = ({ onNext, onClose, onSuccess
         >
           {isLogin ? 'Welcome Back' : 'Join HubsAI'}
         </motion.h2>
-        
+
         <motion.p
           className="text-slate-400"
           initial={{ opacity: 0, y: -10 }}
@@ -236,7 +238,7 @@ export const LoginStep: React.FC<LoginStepProps> = ({ onNext, onClose, onSuccess
           onClick={handleSubmit}
           disabled={loading}
           className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 text-white font-bold rounded-xl transition-all duration-300"
-          whileHover={!loading ? { 
+          whileHover={!loading ? {
             scale: 1.02,
             boxShadow: "0 0 30px rgba(59, 130, 246, 0.4)"
           } : {}}

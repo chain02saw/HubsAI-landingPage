@@ -1,20 +1,23 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../AuthContext';
+import { getUserClaimWalletAddress } from '../../../api/authAPI';
 
 interface ClaimWalletStepProps {
   onNext: () => void;
   onSkip: () => void;
+  onBack: () => void;
 }
 
-export const ClaimWalletStep: React.FC<ClaimWalletStepProps> = ({ onNext, onSkip }) => {
-  const { createClaimWallet, claimWalletAddress, lookupShopifyOrder, shopifyOrder } = useAuth();
+export const ClaimWalletStep: React.FC<ClaimWalletStepProps> = ({ onNext, onSkip, onBack }) => {
+  const { lookupShopifyOrder, shopifyOrder } = useAuth();
   const [loading, setLoading] = useState(false);
   const [emailLoading, setEmailLoading] = useState(false);
-  const [created, setCreated] = useState(!!claimWalletAddress);
+  const [created, setCreated] = useState(false);
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
   const [emailVerified, setEmailVerified] = useState(false);
+  const [claimWalletAddress, setClaimWalletAddress] = useState('');
 
   const handleEmailVerification = async () => {
     if (!email || !email.includes('@')) {
@@ -26,12 +29,12 @@ export const ClaimWalletStep: React.FC<ClaimWalletStepProps> = ({ onNext, onSkip
     setEmailError('');
 
     try {
-      const order = await lookupShopifyOrder(email);
-      if (order) {
+      const result = JSON.parse(localStorage.getItem('user') || '{}');
+      if (result.email === email) {
         setEmailVerified(true);
         setEmailError('');
       } else {
-        setEmailError('No Shopify order found for this email. Please use the email from your purchase.');
+        setEmailError('No claim wallet address found for this email. Please use the email from your purchase.');
       }
     } catch (error) {
       setEmailError('Error verifying email. Please try again.');
@@ -48,9 +51,13 @@ export const ClaimWalletStep: React.FC<ClaimWalletStepProps> = ({ onNext, onSkip
 
     setLoading(true);
     try {
-      const address = await createClaimWallet();
-      if (address) {
+      const result = await getUserClaimWalletAddress(email);
+      if (result.result.walletaddress) {
+        setClaimWalletAddress(result.result.walletaddress);
         setCreated(true);
+      }
+      else {
+        setEmailError('No claim wallet address found for this email. Please use the email from your purchase.');
       }
     } catch (error) {
       console.error('Error claiming wallet:', error);
@@ -66,6 +73,20 @@ export const ClaimWalletStep: React.FC<ClaimWalletStepProps> = ({ onNext, onSkip
 
   return (
     <div className="max-w-md mx-auto text-center">
+      {/* Back Button */}
+      <motion.button
+        onClick={onBack}
+        className="absolute left-4 top-4 p-4 text-slate-400 hover:text-white transition-colors rounded-full hover:bg-slate-700/50 flex items-center justify-center min-w-[48px] min-h-[48px]"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+      </motion.button>
+
       <motion.div
         className="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center"
         initial={{ scale: 0 }}
@@ -83,7 +104,7 @@ export const ClaimWalletStep: React.FC<ClaimWalletStepProps> = ({ onNext, onSkip
       >
         Claim Your Wallet
       </motion.h2>
-      
+
       <motion.p
         className="text-slate-400 mb-8"
         initial={{ opacity: 0, y: 20 }}
@@ -140,11 +161,11 @@ export const ClaimWalletStep: React.FC<ClaimWalletStepProps> = ({ onNext, onSkip
               </button>
             </div>
           </div>
-          
+
           <motion.button
             onClick={onNext}
             className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold rounded-xl transition-all duration-300"
-            whileHover={{ 
+            whileHover={{
               scale: 1.02,
               boxShadow: "0 0 30px rgba(59, 130, 246, 0.4)"
             }}
@@ -202,7 +223,7 @@ export const ClaimWalletStep: React.FC<ClaimWalletStepProps> = ({ onNext, onSkip
               onClick={handleClaimWallet}
               disabled={loading || !emailVerified}
               className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 text-white font-bold rounded-xl transition-all duration-300"
-              whileHover={!loading && emailVerified ? { 
+              whileHover={!loading && emailVerified ? {
                 scale: 1.02,
                 boxShadow: "0 0 30px rgba(59, 130, 246, 0.4)"
               } : {}}
@@ -217,7 +238,7 @@ export const ClaimWalletStep: React.FC<ClaimWalletStepProps> = ({ onNext, onSkip
                 'Claim My Wallet'
               )}
             </motion.button>
-            
+
             <motion.button
               onClick={onSkip}
               className="w-full py-2 text-slate-400 hover:text-white transition-colors"

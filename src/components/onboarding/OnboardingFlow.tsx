@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../AuthContext';
+import { SolanaWalletProvider } from '../WalletProvider';
 
 // Step Components
 import { LoginStep } from './steps/LoginStep';
@@ -68,6 +69,12 @@ export const OnboardingFlow = ({
     setCurrentStep(currentStep + 1);
   };
 
+  const handleBack = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
   const handleGoToDashboard = () => {
     console.log('Going to dashboard after onboarding');
     setWalletSetupComplete();
@@ -91,7 +98,7 @@ export const OnboardingFlow = ({
       case 0: // Login/Signup step only
         return <LoginStep onNext={handleNext} onClose={onClose} />;
       case 1: // Claim Wallet step only
-        return <ClaimWalletStep onNext={handleNext} onSkip={handleSkip} />;
+        return <ClaimWalletStep onNext={handleNext} onSkip={handleSkip} onBack={handleBack} />;
       case 2: // Connect External Wallet
         return <ConnectWalletStep onNext={handleNext} onSkip={handleSkip} />;
       case 3: // Profile Setup
@@ -105,15 +112,17 @@ export const OnboardingFlow = ({
         );
       case 5: // Dashboard
         return (
-          <Dashboard 
-            onBackToLanding={handleBackToLanding} 
-            profileData={profileData || {}} 
-          />
+          <SolanaWalletProvider>
+            <Dashboard 
+              onBackToLanding={handleBackToLanding} 
+              profileData={profileData || {}} 
+            />
+          </SolanaWalletProvider>
         );
       default: 
         // Default fallback based on user authentication state
         if (user) {
-          return <ClaimWalletStep onNext={handleNext} onSkip={handleSkip} />;
+          return <ClaimWalletStep onNext={handleNext} onSkip={handleSkip} onBack={handleBack} />;
         }
         return <LoginStep onNext={handleNext} onClose={onClose} />;
     }
@@ -123,10 +132,12 @@ export const OnboardingFlow = ({
   if (showDashboard || currentStep === 5) {
     return (
       <div className="fixed inset-0 bg-dark-950 z-[100]">
-        <Dashboard 
-          onBackToLanding={handleBackToLanding} 
-          profileData={profileData || {}} 
-        />
+        <SolanaWalletProvider>
+          <Dashboard 
+            onBackToLanding={handleBackToLanding} 
+            profileData={profileData || {}} 
+          />
+        </SolanaWalletProvider>
       </div>
     );
   }

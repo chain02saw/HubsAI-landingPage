@@ -2,14 +2,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from './AuthContext';
-import LoginModal from './LoginModal';
 import WalletSelectionModal from './WalletSelectionModal';
 import { OnboardingFlow } from './onboarding/OnboardingFlow';
 import { Dashboard } from './onboarding/dashboard';
+import { SolanaWalletProvider } from './WalletProvider';
 
 const Header: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [walletSelectionOpen, setWalletSelectionOpen] = useState(false);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [startFromProfile, setStartFromProfile] = useState(false);
@@ -52,7 +51,6 @@ const Header: React.FC = () => {
       user && 
       !hasCompletedWalletSetup && 
       !onboardingOpen && 
-      !loginModalOpen && 
       !walletSelectionOpen &&
       !dashboardOpen &&
       !hasTriggeredOnboarding.current &&
@@ -76,10 +74,10 @@ const Header: React.FC = () => {
         clearTimeout(onboardingTimeout.current);
       }
     };
-  }, [user, hasCompletedWalletSetup, onboardingOpen, loginModalOpen, walletSelectionOpen, dashboardOpen, startFromProfile, userExplicitlyClosed]);
+  }, [user, hasCompletedWalletSetup, onboardingOpen, walletSelectionOpen, dashboardOpen, startFromProfile, userExplicitlyClosed]);
 
   const handleNavClick = (label: string) => {
-    if (label === 'Profile') {
+    if (label === 'Profile' || label === 'Login') {
       if (user) {
         if (!hasCompletedWalletSetup) {
           // User manually clicked profile before auto-onboarding
@@ -92,15 +90,15 @@ const Header: React.FC = () => {
           setUserExplicitlyClosed(false); // Reset explicit close flag
           setOnboardingOpen(true);
         } else {
-          setDashboardOpen(true);
+          window.location.href = '/dashboard';
         }
       } else {
-        // User not logged in, show login modal first
+        // User not logged in, show onboarding flow directly
         setStartFromProfile(true);
-        setLoginModalOpen(true);
+        setOnboardingOpen(true);
       }
     } else if (label === 'Dashboard') {
-      setDashboardOpen(true);
+      window.location.href = '/dashboard';
     } else if (label === 'Docs - coming soon') {
       console.log('Navigate to docs');
     } else if (label === 'AI Ty - coming soon') {
@@ -117,7 +115,7 @@ const Header: React.FC = () => {
       }
       return 'Dashboard';
     }
-    return 'Profile';
+    return 'Login';
   };
 
   const getProfileButtonStyle = () => {
@@ -128,25 +126,6 @@ const Header: React.FC = () => {
       return 'btn btn-primary btn-sm';
     }
     return 'btn btn-secondary btn-sm';
-  };
-
-  const handleLoginSuccess = () => {
-    console.log('Login successful, setting processing flag');
-    isProcessingAuth.current = true;
-    justSignedUp.current = true; // Mark that user just signed up/logged in
-    
-    // Close login modal first
-    setLoginModalOpen(false);
-    
-    // If user came from profile button, start onboarding immediately
-    // Skip login step since they just logged in
-    if (startFromProfile) {
-      setTimeout(() => {
-        setOnboardingOpen(true);
-        isProcessingAuth.current = false;
-      }, 500);
-    }
-    // Otherwise, let the useEffect handle auto-onboarding for new users
   };
 
   const handleOnboardingComplete = (data: any) => {
@@ -174,12 +153,6 @@ const Header: React.FC = () => {
   const handleBackToLanding = () => {
     setDashboardOpen(false);
     setProfileData(null);
-  };
-
-  const handleLoginModalClose = () => {
-    setLoginModalOpen(false);
-    setStartFromProfile(false);
-    isProcessingAuth.current = false;
   };
 
   const handleSignOut = () => {
@@ -354,12 +327,6 @@ const Header: React.FC = () => {
       </motion.header>
 
       {/* Modals and Flows - with proper state management */}
-      <LoginModal 
-        isOpen={loginModalOpen} 
-        onClose={handleLoginModalClose}
-        onLoginSuccess={handleLoginSuccess}
-      />
-
       <WalletSelectionModal 
         isOpen={walletSelectionOpen} 
         onClose={() => setWalletSelectionOpen(false)} 
@@ -370,7 +337,7 @@ const Header: React.FC = () => {
         onClose={handleOnboardingClose}
         onComplete={handleOnboardingComplete}
         startFromProfile={startFromProfile}
-        skipLoginStep={justSignedUp.current} // New prop to skip login step
+        skipLoginStep={false}
       />
 
       {/* Dashboard as fullscreen overlay */}
@@ -383,10 +350,12 @@ const Header: React.FC = () => {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Dashboard 
-              onBackToLanding={handleBackToLanding}
-              profileData={profileData}
-            />
+            <SolanaWalletProvider>
+              <Dashboard 
+                onBackToLanding={handleBackToLanding}
+                profileData={profileData}
+              />
+            </SolanaWalletProvider>
           </motion.div>
         )}
       </AnimatePresence>

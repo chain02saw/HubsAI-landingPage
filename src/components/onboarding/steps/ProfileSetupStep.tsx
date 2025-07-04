@@ -1,32 +1,28 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import { setupUserProfile } from "../../../api/authAPI";
+import type { ProfileSetupData } from "../../../api/authAPI";
 
 interface ProfileSetupStepProps {
   onNext: (data: any) => void;
 }
 
-interface ProfileData {
-  username: string;
-  country: string;
+interface ProfileData extends ProfileSetupData {
   avatar: File | null;
-  interests: string[];
-  emailCommunications: boolean;
-  hubsStakingInterest: boolean;
 }
 
 export const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({
   onNext,
 }) => {
-  const [formData, setFormData] = useState<ProfileData>({
-    username: "",
-    country: "",
-    avatar: null,
-    interests: [],
-    emailCommunications: false,
-    hubsStakingInterest: false,
-  });
+
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [username, setUsername] = useState<string>("");
+  const [hubsStakingInterest, setHubsStakingInterest] = useState<boolean>(false);
+  const [interests, setInterests] = useState<string[]>([]);
+  const [country, setCountry] = useState<string>("");
+  const [emailCommunications, setEmailCommunications] = useState<boolean>(false);
 
   const countries = [
     { code: "US", name: "United States" },
@@ -45,7 +41,7 @@ export const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({
   // Updated interests - removed Food and Travel, added RWA and Crypto
   const interestOptions = [
     "Fashion",
-    "Technology", 
+    "Technology",
     "Gaming",
     "RWA and crypto", // Real World Assets
     "Crypto",
@@ -54,26 +50,19 @@ export const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({
     "Art",
   ];
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
   const handleCheckboxChange = (name: keyof ProfileData) => {
-    setFormData({
-      ...formData,
-      [name]: !formData[name],
-    });
+    if (name === "emailCommunications") {
+      setEmailCommunications(!emailCommunications);
+    } else if (name === "hubsStakingInterest") {
+      setHubsStakingInterest(!hubsStakingInterest);
+    }
   };
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setFormData({ ...formData, avatar: file });
+      setAvatarPreview(URL.createObjectURL(file));
+
       const reader = new FileReader();
       reader.onload = (e) => {
         setAvatarPreview(e.target?.result as string);
@@ -82,34 +71,41 @@ export const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({
     }
   };
 
-  const handleInterestToggle = (interest: string) => {
-    const newInterests = formData.interests.includes(interest)
-      ? formData.interests.filter((i) => i !== interest)
-      : [...formData.interests, interest];
-    setFormData({ ...formData, interests: newInterests });
-  };
-
-  const handleSubmit = () => {
-    if (!formData.username || !formData.country) {
-      return;
-    }
-
+  const handleSubmit = async () => {
     setLoading(true);
+    setError(null);
 
-    setTimeout(() => {
+    try {
+
+      const email = JSON.parse(localStorage.getItem('user') || '{}').email;
+      const response = await setupUserProfile({
+        email: email,
+        username: username,
+        country: country,
+        interests: interests,
+        emailCommunications: emailCommunications,
+        hubsStakingInterest: hubsStakingInterest,
+        avatar: avatarPreview ? avatarPreview : null
+      });
+
+      localStorage.setItem('user', JSON.stringify(response.result));
+      onNext(response.result);
+    } catch (err: any) {
+      console.error('Profile setup error:', err);
+      setError(err.message || 'Failed to setup profile. Please try again.');
+    } finally {
       setLoading(false);
-      onNext(formData);
-    }, 1000);
+    }
   };
 
   const generateUsername = () => {
-    // Generate a random username since we don't have fullName anymore
     const adjectives = ['Smart', 'Quick', 'Bright', 'Swift', 'Bold', 'Cool'];
     const nouns = ['Trader', 'Hodler', 'Builder', 'Staker', 'Miner', 'Explorer'];
     const randomAdj = adjectives[Math.floor(Math.random() * adjectives.length)];
     const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
     const randomNum = Math.floor(Math.random() * 1000);
-    setFormData({ ...formData, username: `${randomAdj}${randomNoun}${randomNum}` });
+
+    setUsername(`${randomAdj}${randomNoun}${randomNum}`);
   };
 
   return (
@@ -132,7 +128,7 @@ export const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({
           Customize your HubsAI experience and connect with the community
         </motion.p>
       </div>
-      
+
       <motion.div
         className="space-y-6"
         initial={{ opacity: 0, y: 20 }}
@@ -176,15 +172,16 @@ export const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({
 
         {/* Username */}
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">
+          <label htmlFor="username" className="block text-sm font-medium text-slate-300 mb-2">
             Username / Handle *
           </label>
           <div className="flex space-x-2">
             <input
+              id="username"
               type="text"
               name="username"
-              value={formData.username}
-              onChange={handleInputChange}
+              value={username || ''}
+              onChange={(e) => setUsername(e.target.value)}
               className="flex-1 px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Choose a username"
             />
@@ -203,13 +200,14 @@ export const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({
 
         {/* Country */}
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">
+          <label htmlFor="country" className="block text-sm font-medium text-slate-300 mb-2">
             Country *
           </label>
           <select
+            id="country"
             name="country"
-            value={formData.country}
-            onChange={handleInputChange}
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
             className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="" className="bg-slate-800">
@@ -236,17 +234,18 @@ export const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({
             {interestOptions.map((interest) => (
               <label
                 key={interest}
-                className={`flex items-center space-x-2 p-3 rounded-lg transition-colors cursor-pointer ${
-                  formData.interests.includes(interest)
-                    ? "bg-blue-500/20 border border-blue-500/50 text-blue-300"
-                    : "bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-300"
-                }`}
+                className={`flex items-center space-x-2 p-3 rounded-lg transition-colors cursor-pointer ${interests.includes(interest)
+                  ? "bg-blue-500/20 border border-blue-500/50 text-blue-300"
+                  : "bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-300"
+                  }`}
               >
                 <div className="checkbox-container simple">
                   <input
                     type="checkbox"
-                    checked={formData.interests.includes(interest)}
-                    onChange={() => handleInterestToggle(interest)}
+                    checked={interests.includes(interest)}
+                    onChange={() => setInterests(prevInterests => prevInterests.includes(interest)
+                      ? prevInterests.filter(i => i !== interest)
+                      : [...prevInterests, interest])}
                     className="checkbox-input"
                   />
                   <span className="checkbox-custom"></span>
@@ -262,7 +261,7 @@ export const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({
           <label className="checkbox-container">
             <input
               type="checkbox"
-              checked={formData.emailCommunications}
+              checked={emailCommunications}
               onChange={() => handleCheckboxChange('emailCommunications')}
               className="checkbox-input"
             />
@@ -288,8 +287,8 @@ export const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({
           <label className="checkbox-container">
             <input
               type="checkbox"
-              checked={formData.hubsStakingInterest}
-              onChange={() => handleCheckboxChange('hubsStakingInterest')}
+              checked={hubsStakingInterest || false}
+              onChange={() => setHubsStakingInterest(!hubsStakingInterest)}
               className="checkbox-input"
             />
             <span className="checkbox-custom"></span>
@@ -309,17 +308,29 @@ export const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({
           </label>
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <motion.div
+            className="mb-4 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            {error}
+          </motion.div>
+        )}
+
         {/* Submit Button */}
         <motion.button
+          type="button"
           onClick={handleSubmit}
-          disabled={loading || !formData.username || !formData.country}
+          disabled={loading || !username || !country}
           className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all duration-300"
           whileHover={
-            !loading && formData.username && formData.country
+            !loading && username && country
               ? {
-                  scale: 1.02,
-                  boxShadow: "0 0 30px rgba(59, 130, 246, 0.4)",
-                }
+                scale: 1.02,
+                boxShadow: "0 0 30px rgba(59, 130, 246, 0.4)",
+              }
               : {}
           }
           whileTap={!loading ? { scale: 0.98 } : {}}

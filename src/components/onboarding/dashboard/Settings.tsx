@@ -2,35 +2,30 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../AuthContext';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { updateUserProfile } from '../../../api/authAPI';
 
 interface SettingsProps {
   profileData?: any;
 }
 
-export const Settings: React.FC<SettingsProps> = ({ profileData }) => {
-  const { user, claimWalletAddress, signOut, trackEvent } = useAuth();
+export const Settings: React.FC<SettingsProps> = ({ }) => {
+  const { claimWalletAddress, signOut, trackEvent } = useAuth();
   const { connected, publicKey, wallet, disconnect } = useWallet();
 
   const [activeSection, setActiveSection] = useState('profile');
   const [editMode, setEditMode] = useState(false);
-  const [formData, setFormData] = useState({
-    fullName: profileData?.fullName || user?.name || '',
-    username: profileData?.username || '',
-    email: user?.email || '',
-    country: profileData?.country || '',
-    interests: profileData?.interests || [],
-    notifications: {
-      email: true,
-      staking: true,
-      rewards: true,
-      marketplace: false,
-    },
-    privacy: {
-      showProfile: true,
-      showNFTs: true,
-      showActivity: false,
-    },
-  });
+  const [fullName, setFullName] = useState(JSON.parse(localStorage.getItem('user') || '{}').fullname || '');
+  const [username, setUsername] = useState(JSON.parse(localStorage.getItem('user') || '{}').username || '');
+  const [email, setEmail] = useState(JSON.parse(localStorage.getItem('user') || '{}').email || '');
+  const [country, setCountry] = useState(JSON.parse(localStorage.getItem('user') || '{}').country || '');
+  const [notifications, setNotifications] = useState(JSON.parse(localStorage.getItem('user') || '{}').notifications || {});
+  const [privacy, setPrivacy] = useState(JSON.parse(localStorage.getItem('user') || '{}').privacy || {});
+
+  console.log('1️⃣1️⃣1️⃣1️⃣1️⃣fullName', JSON.parse(localStorage.getItem('user') || '{}').fullname);
+  console.log('1️⃣1️⃣1️⃣1️⃣1️⃣username', JSON.parse(localStorage.getItem('user') || '{}').username);
+  console.log('1️⃣1️⃣1️⃣1️⃣1️⃣email', JSON.parse(localStorage.getItem('user') || '{}').email);
+  console.log('1️⃣1️⃣1️⃣1️⃣1️⃣country', JSON.parse(localStorage.getItem('user') || '{}').country);
+
 
   const sections = [
     { id: 'profile', label: 'Profile', icon: '👤' },
@@ -40,39 +35,35 @@ export const Settings: React.FC<SettingsProps> = ({ profileData }) => {
     { id: 'security', label: 'Security', icon: '🛡️' },
   ];
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+
 
   const handleNotificationChange = (key: string, value: boolean) => {
-    setFormData({
-      ...formData,
-      notifications: {
-        ...formData.notifications,
-        [key]: value,
-      },
+    setNotifications({
+      ...notifications,
+      [key]: value,
     });
   };
 
   const handlePrivacyChange = (key: string, value: boolean) => {
-    setFormData({
-      ...formData,
-      privacy: {
-        ...formData.privacy,
-        [key]: value,
-      },
+    setPrivacy({
+      ...privacy,
+      [key]: value,
     });
   };
 
-  const handleSave = () => {
-    trackEvent('profile_updated', formData);
-    console.log('Saving settings:', formData);
-    setEditMode(false);
+  const handleSave = async () => {
+    try {
+      const response = await updateUserProfile({
+        fullname: fullName,
+        username: username,
+        email: email,
+        country: country,
+      });
+      console.log('User profile updated:', response);
+      setEditMode(false);
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+    }
   };
 
   const copyToClipboard = (text: string) => {
@@ -105,12 +96,12 @@ export const Settings: React.FC<SettingsProps> = ({ profileData }) => {
             <input
               type="text"
               name="fullName"
-              value={formData.fullName}
-              onChange={handleInputChange}
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
               className="w-full px-4 py-3 rounded-xl bg-slate-700 border border-slate-600 text-white"
             />
           ) : (
-            <p className="text-white bg-slate-700 px-4 py-3 rounded-xl">{formData.fullName || 'Not set'}</p>
+            <p className="text-white bg-slate-700 px-4 py-3 rounded-xl">{fullName || 'Not set'}</p>
           )}
         </div>
         {/* Username */}
@@ -120,18 +111,28 @@ export const Settings: React.FC<SettingsProps> = ({ profileData }) => {
             <input
               type="text"
               name="username"
-              value={formData.username}
-              onChange={handleInputChange}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className="w-full px-4 py-3 rounded-xl bg-slate-700 border border-slate-600 text-white"
             />
           ) : (
-            <p className="text-white bg-slate-700 px-4 py-3 rounded-xl">{formData.username || 'Not set'}</p>
+            <p className="text-white bg-slate-700 px-4 py-3 rounded-xl">{username || 'Not set'}</p>
           )}
         </div>
         {/* Email */}
         <div>
           <label className="block text-sm text-slate-400 mb-2">Email</label>
-          <p className="text-white bg-slate-700 px-4 py-3 rounded-xl">{formData.email}</p>
+          {editMode ? (
+            <input
+              type="text"
+              name="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl bg-slate-700 border border-slate-600 text-white"
+            />
+          ) : (
+            <p className="text-white bg-slate-700 px-4 py-3 rounded-xl">{email || 'Not set'}</p>
+          )}
         </div>
         {/* Country */}
         <div>
@@ -139,8 +140,8 @@ export const Settings: React.FC<SettingsProps> = ({ profileData }) => {
           {editMode ? (
             <select
               name="country"
-              value={formData.country}
-              onChange={handleInputChange}
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
               className="w-full px-4 py-3 rounded-xl bg-slate-700 border border-slate-600 text-white"
             >
               <option value="US">United States</option>
@@ -153,7 +154,7 @@ export const Settings: React.FC<SettingsProps> = ({ profileData }) => {
               <option value="OTHER">Other</option>
             </select>
           ) : (
-            <p className="text-white bg-slate-700 px-4 py-3 rounded-xl">{formData.country || 'Not set'}</p>
+            <p className="text-white bg-slate-700 px-4 py-3 rounded-xl">{country || 'Not set'}</p>
           )}
         </div>
       </div>
@@ -293,32 +294,32 @@ export const Settings: React.FC<SettingsProps> = ({ profileData }) => {
     <div className="space-y-6">
       <h3 className="text-2xl font-bold text-white">Notification Preferences</h3>
       <div className="space-y-4">
-        {Object.entries(formData.notifications).map(([key, value]) => (
+        {Object.entries(notifications).map(([key, value]) => (
           <div key={key} className="flex items-center justify-between p-4 bg-slate-700 rounded-xl">
             <div>
               <p className="text-white font-medium capitalize">
                 {key === 'email'
                   ? 'Email Notifications'
                   : key === 'staking'
-                  ? 'Staking Updates'
-                  : key === 'rewards'
-                  ? 'Reward Notifications'
-                  : 'Marketplace Activity'}
+                    ? 'Staking Updates'
+                    : key === 'rewards'
+                      ? 'Reward Notifications'
+                      : 'Marketplace Activity'}
               </p>
               <p className="text-sm text-slate-400">
                 {key === 'email'
                   ? 'Receive important updates via email'
                   : key === 'staking'
-                  ? 'Get notified about staking status changes'
-                  : key === 'rewards'
-                  ? 'Daily reward summaries and milestones'
-                  : 'New listings and marketplace updates'}
+                    ? 'Get notified about staking status changes'
+                    : key === 'rewards'
+                      ? 'Daily reward summaries and milestones'
+                      : 'New listings and marketplace updates'}
               </p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
-                checked={value}
+                checked={value as boolean}
                 onChange={(e) => handleNotificationChange(key, e.target.checked)}
                 className="sr-only peer"
               />
@@ -334,28 +335,28 @@ export const Settings: React.FC<SettingsProps> = ({ profileData }) => {
     <div className="space-y-6">
       <h3 className="text-2xl font-bold text-white">Privacy Settings</h3>
       <div className="space-y-4">
-        {Object.entries(formData.privacy).map(([key, value]) => (
+        {Object.entries(privacy).map(([key, value]) => (
           <div key={key} className="flex items-center justify-between p-4 bg-slate-700 rounded-xl">
             <div>
               <p className="text-white font-medium">
                 {key === 'showProfile'
                   ? 'Public Profile'
                   : key === 'showNFTs'
-                  ? 'Show NFT Collection'
-                  : 'Show Activity History'}
+                    ? 'Show NFT Collection'
+                    : 'Show Activity History'}
               </p>
               <p className="text-sm text-slate-400">
                 {key === 'showProfile'
                   ? 'Make your profile visible to other users'
                   : key === 'showNFTs'
-                  ? 'Display your NFTs on your public profile'
-                  : 'Show your staking and trading activity'}
+                    ? 'Display your NFTs on your public profile'
+                    : 'Show your staking and trading activity'}
               </p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
-                checked={value}
+                checked={value as boolean}
                 onChange={(e) => handlePrivacyChange(key, e.target.checked)}
                 className="sr-only peer"
               />

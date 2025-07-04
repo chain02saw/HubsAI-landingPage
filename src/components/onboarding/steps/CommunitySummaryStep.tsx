@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface CommunitySummaryStepProps {
   onNext: () => void;
@@ -28,6 +29,7 @@ interface Brand {
 
 export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ onNext, profileData }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [airdropClaimed, setAirdropClaimed] = useState(false);
   const [isClaimingAirdrop, setIsClaimingAirdrop] = useState(false);
 
@@ -132,7 +134,7 @@ export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ onNe
   };
 
   const handleStartStaking = () => {
-    onNext();
+    navigate('/dashboard');
   };
 
   const totalDailyRewards = mockNFTs.reduce((total, nft) => {
