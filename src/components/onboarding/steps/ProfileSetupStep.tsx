@@ -5,6 +5,7 @@ import type { ProfileSetupData } from "../../../api/authAPI";
 
 interface ProfileSetupStepProps {
   onNext: (data: any) => void;
+  onPrevious: () => void;
 }
 
 interface ProfileData extends ProfileSetupData {
@@ -13,6 +14,7 @@ interface ProfileData extends ProfileSetupData {
 
 export const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({
   onNext,
+  onPrevious,
 }) => {
 
   const [loading, setLoading] = useState(false);
@@ -110,6 +112,20 @@ export const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({
 
   return (
     <div className="max-w-lg mx-auto">
+      {/* Back Button */}
+      <motion.button
+        onClick={onPrevious}
+        className="absolute left-4 top-4 p-4 text-slate-400 hover:text-white transition-colors rounded-full hover:bg-slate-700/50 flex items-center justify-center min-w-[48px] min-h-[48px]"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+      </motion.button>
+
       <div className="text-center mb-8">
         <motion.h2
           className="text-3xl font-bold text-white mb-2"

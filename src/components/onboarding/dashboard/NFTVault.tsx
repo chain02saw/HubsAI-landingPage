@@ -1,17 +1,19 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../AuthContext';
+import { getUserNFTsWithBackend } from '../../../api/authAPI';
 
 interface NFT {
   id: number;
-  name: string;
+  title: string;
   image: string;
   rarity: 'Common' | 'Rare' | 'Epic' | 'Legendary';
-  stakingRewards: string;
+  price: string;
+  mintAddress: string;
   isStaked: boolean;
-  mintDate: string;
-  attributes: Array<{ trait_type: string; value: string }>;
-  value: string;
+  quantity: number;
+  symbol: string;
+  description: string;
 }
 
 const RARITY_STYLES = {
@@ -39,6 +41,12 @@ const RARITY_STYLES = {
     bg: 'bg-gray-500/20',
     text: 'text-gray-400',
   },
+  default: {
+    gradient: 'from-gray-500 to-gray-600',
+    border: 'border-gray-500/50',
+    bg: 'bg-gray-500/20',
+    text: 'text-gray-400',
+  }
 } as const;
 
 const FILTER_OPTIONS = [
@@ -53,7 +61,7 @@ const NFTCard: React.FC<{
   onSelect: (nft: NFT) => void;
   onStakeToggle: (nftId: number) => void;
 }> = React.memo(({ nft, index, onSelect, onStakeToggle }) => {
-  const rarityStyle = RARITY_STYLES[nft.rarity];
+  const rarityStyle = RARITY_STYLES[nft.rarity as keyof typeof RARITY_STYLES] || RARITY_STYLES.default;
 
   const handleStakeClick = useCallback(
     (e: React.MouseEvent) => {
@@ -83,7 +91,7 @@ const NFTCard: React.FC<{
       <div
         className={`aspect-square bg-gradient-to-br ${rarityStyle.gradient} rounded-lg mb-4 flex items-center justify-center relative overflow-hidden`}
       >
-        <span className="text-6xl">🎨</span>
+        <img src={nft.image} alt={nft.title} className="w-full h-full object-cover" />
         <div className="absolute top-2 right-2">
           <span className={`text-xs px-2 py-1 rounded-full bg-black/30 text-white border ${rarityStyle.border}`}>
             {nft.rarity}
@@ -92,35 +100,29 @@ const NFTCard: React.FC<{
       </div>
 
       {/* NFT Info */}
-      <h3 className="font-bold text-white mb-2 text-lg truncate">{nft.name}</h3>
-      <p className="text-sm text-slate-400 mb-2">Value: {nft.value}</p>
-      <p className="text-sm text-green-400 mb-3">Rewards: {nft.stakingRewards}</p>
+      <h3 className="font-bold text-white mb-2 text-lg truncate">{nft.title}</h3>
+      <p className="text-sm text-slate-400 mb-2">Value: {nft.price}</p>
 
       {/* Staking Status */}
       <div className="flex items-center justify-between mb-4">
         <span
-          className={`text-xs px-3 py-1 rounded-full ${
-            nft.isStaked
-              ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-              : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
-          }`}
+          className={`text-xs px-3 py-1 rounded-full ${nft.isStaked
+            ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+            : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
+            }`}
         >
           {nft.isStaked ? '🔒 Staking' : '⭕ Available'}
         </span>
 
-        <div className="text-xs text-slate-500">
-          {new Date(nft.mintDate).toLocaleDateString()}
-        </div>
       </div>
 
       {/* Action Button */}
       <motion.button
         onClick={handleStakeClick}
-        className={`w-full py-2 rounded-lg text-sm font-medium transition-all ${
-          nft.isStaked
-            ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30'
-            : 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border border-blue-500/30'
-        }`}
+        className={`w-full py-2 rounded-lg text-sm font-medium transition-all ${nft.isStaked
+          ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30'
+          : 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border border-blue-500/30'
+          }`}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
       >
@@ -141,11 +143,10 @@ const FilterButtons: React.FC<{
       <motion.button
         key={filterOption.id}
         onClick={() => onFilterChange(filterOption.id)}
-        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-          filter === filterOption.id
-            ? 'bg-blue-500 text-white'
-            : 'bg-slate-700 text-slate-400 hover:text-white hover:bg-slate-600'
-        }`}
+        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filter === filterOption.id
+          ? 'bg-blue-500 text-white'
+          : 'bg-slate-700 text-slate-400 hover:text-white hover:bg-slate-600'
+          }`}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
       >
@@ -157,108 +158,27 @@ const FilterButtons: React.FC<{
 FilterButtons.displayName = 'FilterButtons';
 
 export const NFTVault: React.FC = React.memo(() => {
-  const { shopifyOrder, trackEvent } = useAuth();
+  const { trackEvent } = useAuth();
   const [selectedNFT, setSelectedNFT] = useState<NFT | null>(null);
   const [filter, setFilter] = useState<string>('all');
+  const [userNFTs, setUserNFTs] = useState<any[]>([]);
+  const [copySuccess, setCopySuccess] = useState(false);
 
-  const MOCK_NFTS: NFT[] = useMemo(() => {
-    if (shopifyOrder?.lineItems.some((item) => item.nftEligible)) {
-      return shopifyOrder.lineItems
-        .filter((item) => item.nftEligible)
-        .map((item, index) => ({
-          id: index + 1,
-          name: item.name,
-          image: '/assets/hubsai-logo.png',
-          rarity: (index === 0 ? 'Legendary' : index === 1 ? 'Epic' : 'Rare') as NFT['rarity'],
-          stakingRewards: `${(25 - index * 5).toFixed(1)} HUBS/day`,
-          isStaked: index % 2 === 0,
-          mintDate: new Date(Date.now() - index * 86400000).toISOString(),
-          value: `$${(300 - index * 50).toFixed(2)}`,
-          attributes: [
-            { trait_type: 'Tier', value: index === 0 ? 'Genesis' : index === 1 ? 'Pioneer' : 'Standard' },
-            { trait_type: 'Power', value: `${95 - index * 10}` },
-            { trait_type: 'Rarity Score', value: `${900 - index * 100}` },
-          ],
-        }));
+  useEffect(() => {
+    try {
+      const getUserNFTs = async () => {
+        const user = JSON.parse(localStorage.getItem('user') || '{}').email;
+        if (!user) {
+          return;
+        }
+        const nfts = await getUserNFTsWithBackend(user);
+        setUserNFTs(nfts.result);
+      };
+      getUserNFTs();
+    } catch (error) {
+      console.error('Error fetching NFTs', error);
     }
-    // fallback static NFTs
-    return [
-      {
-        id: 1,
-        name: 'HubsAI Genesis #001',
-        image: '/assets/hubsai-logo.png',
-        rarity: 'Legendary',
-        stakingRewards: '25.0 HUBS/day',
-        isStaked: true,
-        mintDate: '2024-01-15',
-        value: '$299.99',
-        attributes: [
-          { trait_type: 'Tier', value: 'Genesis' },
-          { trait_type: 'Power', value: '95' },
-          { trait_type: 'Rarity Score', value: '890' },
-        ],
-      },
-      {
-        id: 2,
-        name: 'Retail Pioneer #156',
-        image: '/assets/hubsai-logo.png',
-        rarity: 'Epic',
-        stakingRewards: '18.2 HUBS/day',
-        isStaked: false,
-        mintDate: '2024-02-10',
-        value: '$199.99',
-        attributes: [
-          { trait_type: 'Tier', value: 'Pioneer' },
-          { trait_type: 'Power', value: '78' },
-          { trait_type: 'Rarity Score', value: '650' },
-        ],
-      },
-      {
-        id: 3,
-        name: 'Commerce Token #892',
-        image: '/assets/hubsai-logo.png',
-        rarity: 'Rare',
-        stakingRewards: '12.1 HUBS/day',
-        isStaked: true,
-        mintDate: '2024-03-05',
-        value: '$149.99',
-        attributes: [
-          { trait_type: 'Tier', value: 'Commerce' },
-          { trait_type: 'Power', value: '62' },
-          { trait_type: 'Rarity Score', value: '420' },
-        ],
-      },
-    ];
-  }, [shopifyOrder]);
-
-  const filteredNFTs = useMemo(() => {
-    switch (filter) {
-      case 'staked':
-        return MOCK_NFTS.filter((nft) => nft.isStaked);
-      case 'unstaked':
-        return MOCK_NFTS.filter((nft) => !nft.isStaked);
-      default:
-        return MOCK_NFTS;
-    }
-  }, [filter, MOCK_NFTS]);
-
-  // const stats = useMemo(() => {
-  //   const stakedNFTs = MOCK_NFTS.filter((nft) => nft.isStaked);
-  //   const totalStakedRewards = stakedNFTs.reduce(
-  //     (total, nft) => total + parseFloat(nft.stakingRewards.split(' ')[0]),
-  //     0
-  //   );
-  //   const totalValue = MOCK_NFTS.reduce(
-  //     (total, nft) => total + parseFloat(nft.value.replace('$', '')),
-  //     0
-  //   );
-  //   return {
-  //     totalStaked: stakedNFTs.length,
-  //     totalNFTs: MOCK_NFTS.length,
-  //     dailyRewards: totalStakedRewards.toFixed(1),
-  //     totalValue: totalValue.toFixed(2),
-  //   };
-  // }, [MOCK_NFTS]);
+  }, []);
 
   const handleStakeToggle = useCallback(
     (nftId: number) => {
@@ -271,7 +191,7 @@ export const NFTVault: React.FC = React.memo(() => {
   const handleNFTSelect = useCallback(
     (nft: NFT) => {
       setSelectedNFT(nft);
-      trackEvent('nft_details_viewed', { nftId: nft.id, nftName: nft.name });
+      trackEvent('nft_details_viewed', { nftId: nft.id, nftName: nft.title });
     },
     [trackEvent]
   );
@@ -279,6 +199,19 @@ export const NFTVault: React.FC = React.memo(() => {
   const handleCloseModal = useCallback(() => {
     setSelectedNFT(null);
   }, []);
+
+  const handleCopyAddress = useCallback(async () => {
+    if (selectedNFT?.mintAddress) {
+      try {
+        await navigator.clipboard.writeText(selectedNFT.mintAddress);
+        setCopySuccess(true);
+        trackEvent('nft_address_copied', { nftId: selectedNFT.id });
+        setTimeout(() => setCopySuccess(false), 2000);
+      } catch (err) {
+        console.error('Failed to copy address', err);
+      }
+    }
+  }, [selectedNFT, trackEvent]);
 
   return (
     <div>
@@ -297,9 +230,9 @@ export const NFTVault: React.FC = React.memo(() => {
       {/* NFT Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <AnimatePresence mode="popLayout">
-          {filteredNFTs.map((nft, index) => (
+          {userNFTs && userNFTs.length > 0 && userNFTs.map((nft, index) => (
             <NFTCard
-              key={nft.id}
+              key={index}
               nft={nft}
               index={index}
               onSelect={handleNFTSelect}
@@ -352,7 +285,7 @@ export const NFTVault: React.FC = React.memo(() => {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-white">{selectedNFT.name}</h2>
+                <h2 className="text-2xl font-bold text-white">{selectedNFT.title}</h2>
                 <button
                   onClick={handleCloseModal}
                   className="text-slate-400 hover:text-white text-2xl"
@@ -364,9 +297,21 @@ export const NFTVault: React.FC = React.memo(() => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* NFT Image */}
                 <div
-                  className={`aspect-square bg-gradient-to-br ${RARITY_STYLES[selectedNFT.rarity].gradient} rounded-xl flex items-center justify-center`}
+                  className={`aspect-square bg-gradient-to-br ${
+                    RARITY_STYLES[selectedNFT.rarity as keyof typeof RARITY_STYLES]?.gradient || RARITY_STYLES.default.gradient
+                  } rounded-xl flex items-center justify-center`}
                 >
-                  <span className="text-8xl">🎨</span>
+                  <img 
+                    src={selectedNFT.image} 
+                    alt={selectedNFT.title} 
+                    className="w-full h-full object-cover" 
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = ''; // Clear the broken image
+                      e.currentTarget.parentElement?.classList.add('fallback-content');
+                    }}
+                  />
+                  <span className="text-8xl fallback-content hidden">🎨</span>
                 </div>
 
                 {/* NFT Details */}
@@ -375,16 +320,18 @@ export const NFTVault: React.FC = React.memo(() => {
                     <h3 className="text-lg font-bold text-white mb-2">Details</h3>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-slate-400">Rarity:</span>
-                        <span className={RARITY_STYLES[selectedNFT.rarity].text}>{selectedNFT.rarity}</span>
+                        <span className="text-slate-400">Description:</span>
+                        <span className={RARITY_STYLES[selectedNFT.rarity as keyof typeof RARITY_STYLES]?.text || RARITY_STYLES.default.text}>
+                          {selectedNFT.description || 'Unknown'}
+                        </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-400">Value:</span>
-                        <span className="text-green-400">{selectedNFT.value}</span>
+                        <span className="text-slate-400">Price:</span>
+                        <span className="text-green-400">{selectedNFT.price}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-400">Daily Rewards:</span>
-                        <span className="text-yellow-400">{selectedNFT.stakingRewards}</span>
+                        <span className="text-slate-400">Quantity:</span>
+                        <span className="text-yellow-400">{selectedNFT.quantity}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-slate-400">Status:</span>
@@ -392,9 +339,29 @@ export const NFTVault: React.FC = React.memo(() => {
                           {selectedNFT.isStaked ? 'Staking' : 'Available'}
                         </span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">Mint Date:</span>
-                        <span className="text-white">{new Date(selectedNFT.mintDate).toLocaleDateString()}</span>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-400">Mint Address:</span>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-white">{selectedNFT.mintAddress.slice(0, 6)}...{selectedNFT.mintAddress.slice(-4)}</span>
+                          <motion.button
+                            onClick={handleCopyAddress}
+                            className="p-1.5 rounded-lg bg-slate-600 hover:bg-slate-500 transition-colors"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            title="Copy full address"
+                          >
+                            {copySuccess ? (
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            ) : (
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-300" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                                <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                              </svg>
+                            )}
+                          </motion.button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -402,12 +369,10 @@ export const NFTVault: React.FC = React.memo(() => {
                   <div>
                     <h3 className="text-lg font-bold text-white mb-2">Attributes</h3>
                     <div className="grid grid-cols-1 gap-2">
-                      {selectedNFT.attributes.map((attr, index) => (
-                        <div key={index} className="flex justify-between p-2 bg-slate-700 rounded-lg">
-                          <span className="text-slate-400 text-sm">{attr.trait_type}:</span>
-                          <span className="text-white text-sm font-medium">{attr.value}</span>
-                        </div>
-                      ))}
+                      <div className="flex justify-between p-2 bg-slate-700 rounded-lg">
+                        <span className="text-slate-400 text-sm">Description:</span>
+                        <span className="text-white text-sm font-medium">{selectedNFT.description}</span>
+                      </div>
                     </div>
                   </div>
 
@@ -416,11 +381,10 @@ export const NFTVault: React.FC = React.memo(() => {
                       handleStakeToggle(selectedNFT.id);
                       handleCloseModal();
                     }}
-                    className={`w-full py-3 rounded-xl font-bold transition-all ${
-                      selectedNFT.isStaked
-                        ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30'
-                        : 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border border-blue-500/30'
-                    }`}
+                    className={`w-full py-3 rounded-xl font-bold transition-all ${selectedNFT.isStaked
+                      ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30'
+                      : 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border border-blue-500/30'
+                      }`}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >

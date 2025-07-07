@@ -115,7 +115,8 @@ const Header: React.FC = () => {
       }
       return 'Dashboard';
     }
-    return 'Login';
+    const userInfo = localStorage.getItem('user');
+    return userInfo && userInfo !== 'null' ? <a href="/dashboard">Dashboard</a> : 'Login';
   };
 
   const getProfileButtonStyle = () => {

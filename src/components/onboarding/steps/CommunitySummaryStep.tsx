@@ -179,12 +179,12 @@ export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ prof
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
             <h3 className="text-2xl font-bold text-white flex items-center">
               <span className="w-3 h-3 bg-green-500 rounded-full mr-3 animate-pulse"></span>
               Your NFT Collection
             </h3>
-            <span className="text-sm text-primary-400 bg-primary-500/20 px-3 py-1 rounded-full">
+            <span className="text-sm text-primary-400 bg-primary-500/20 px-4 py-1.5 rounded-full whitespace-nowrap min-w-[100px] text-center">
               {mockNFTs.length} NFTs Ready
             </span>
           </div>
@@ -237,12 +237,12 @@ export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ prof
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
             <h3 className="text-2xl font-bold text-white flex items-center">
               <span className="w-3 h-3 bg-yellow-500 rounded-full mr-3 animate-pulse"></span>
               Brand Partners
             </h3>
-            <span className="text-sm text-yellow-400 bg-yellow-500/20 px-3 py-1 rounded-full">
+            <span className="text-sm text-yellow-400 bg-yellow-500/20 px-4 py-1.5 rounded-full whitespace-nowrap min-w-[100px] text-center">
               {topBrands.length} Partners
             </span>
           </div>

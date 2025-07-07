@@ -100,9 +100,9 @@ export const OnboardingFlow = ({
       case 1: // Claim Wallet step only
         return <ClaimWalletStep onNext={handleNext} onSkip={handleSkip} onBack={handleBack} />;
       case 2: // Connect External Wallet
-        return <ConnectWalletStep onNext={handleNext} onSkip={handleSkip} />;
+        return <ConnectWalletStep onNext={handleNext} onSkip={handleSkip} onBack={handleBack} />;
       case 3: // Profile Setup
-        return <ProfileSetupStep onNext={handleNext} />;
+        return <ProfileSetupStep onNext={handleNext} onPrevious={handleBack} />;
       case 4: // Community Summary
         return (
           <CommunitySummaryStep 

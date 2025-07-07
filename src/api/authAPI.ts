@@ -51,3 +51,8 @@ export const updateUserProfile = async (userData: any) => {
     const response = await axios.post(`${backendUrl}/api/auth/update-profile`, userData);
     return response.data;
 };
+
+export const getUserNFTsWithBackend = async (email: string) => {
+    const response = await axios.post(`${backendUrl}/api/getUserNFTs`, { email });
+    return response.data;
+};
