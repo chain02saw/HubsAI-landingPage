@@ -8,7 +8,7 @@ interface LoginStepProps {
   onSuccess?: () => void; // New prop for handling successful auth
 }
 
-export const LoginStep: React.FC<LoginStepProps> = ({ onSuccess }) => {
+export const LoginStep: React.FC<LoginStepProps> = ({ onNext, onSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -68,12 +68,17 @@ export const LoginStep: React.FC<LoginStepProps> = ({ onSuccess }) => {
       }
 
       if (result.success) {
-        if (onSuccess) {
-          onSuccess();
-        } else {
-          localStorage.setItem('user', JSON.stringify(result.result));
-          // onNext();
+        localStorage.setItem('user', JSON.stringify(result.result));
+        if (isLogin) {
+          // For sign in: redirect to dashboard
           window.location.href = '/dashboard';
+        } else {
+          // For sign up: show next onboarding step
+          if (onSuccess) {
+            onSuccess();
+          } else {
+            onNext();
+          }
         }
       } else {
         setError(result.error || 'Authentication failed');
