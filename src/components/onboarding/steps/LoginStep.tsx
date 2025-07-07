@@ -8,7 +8,7 @@ interface LoginStepProps {
   onSuccess?: () => void; // New prop for handling successful auth
 }
 
-export const LoginStep: React.FC<LoginStepProps> = ({ onNext, onSuccess }) => {
+export const LoginStep: React.FC<LoginStepProps> = ({ onSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
