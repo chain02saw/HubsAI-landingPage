@@ -15,9 +15,9 @@ const Header: React.FC = () => {
   const [dashboardOpen, setDashboardOpen] = useState(false);
   const [profileData, setProfileData] = useState<any>(null);
   const [userExplicitlyClosed, setUserExplicitlyClosed] = useState(false); // Track explicit close
-  
+
   const { user, loading, hasCompletedWalletSetup, signOut } = useAuth();
-  
+
   // Refs to track modal states and prevent conflicts
   const hasTriggeredOnboarding = useRef(false);
   const isProcessingAuth = useRef(false);
@@ -48,9 +48,9 @@ const Header: React.FC = () => {
     // 6. User hasn't explicitly closed the modal
     // 7. Not manually triggered from profile button
     if (
-      user && 
-      !hasCompletedWalletSetup && 
-      !onboardingOpen && 
+      user &&
+      !hasCompletedWalletSetup &&
+      !onboardingOpen &&
       !walletSelectionOpen &&
       !dashboardOpen &&
       !hasTriggeredOnboarding.current &&
@@ -60,7 +60,7 @@ const Header: React.FC = () => {
     ) {
       console.log('New user detected, scheduling onboarding flow...');
       hasTriggeredOnboarding.current = true;
-      
+
       // Delay onboarding to ensure any other modals are fully closed
       onboardingTimeout.current = setTimeout(() => {
         console.log('Opening onboarding flow for new user');
@@ -105,18 +105,6 @@ const Header: React.FC = () => {
       console.log('Navigate to AI Ty');
     }
     setMenuOpen(false);
-  };
-
-  const getProfileButtonText = () => {
-    if (loading) return 'Loading...';
-    if (user) {
-      if (!hasCompletedWalletSetup) {
-        return 'Complete Setup';
-      }
-      return 'Dashboard';
-    }
-    const userInfo = localStorage.getItem('user');
-    return userInfo && userInfo !== 'null' ? <a href="/dashboard">Dashboard</a> : 'Login';
   };
 
   const getProfileButtonStyle = () => {
@@ -189,17 +177,21 @@ const Header: React.FC = () => {
   // Get navigation items based on user state
   const getNavItems = () => {
     const items = ['Docs - coming soon'];
-    
+
     if (user && hasCompletedWalletSetup) {
       items.push('Dashboard');
     } else {
-      items.push(getProfileButtonText());
+      // Convert the profile button text to string, removing any JSX
+      const profileText = loading ? 'Loading...' :
+        user ? (!hasCompletedWalletSetup ? 'Complete Setup' : 'Dashboard') :
+          (localStorage.getItem('user') && localStorage.getItem('user') !== 'null' ? <a className="text-white" href="/dashboard">Dashboard</a> : 'Login');
+      items.push(profileText as string);
     }
-    
+
     items.push('AI Ty - coming soon');
     return items;
   };
-  
+
   return (
     <>
       <motion.header
@@ -228,17 +220,15 @@ const Header: React.FC = () => {
                   key={`${label}-${i}`}
                   onClick={() => handleNavClick(label.includes('Dashboard') || label.includes('Complete') ? 'Profile' : label === 'Dashboard' ? 'Dashboard' : label)}
                   disabled={loading}
-                  className={`${getProfileButtonStyle()} ${
-                    loading ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
+                  className={`${getProfileButtonStyle()} ${loading ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
                   whileHover={!loading ? { scale: 1.05 } : {}}
                   transition={{ type: 'spring', stiffness: 400, damping: 10 + i * 10 }}
                 >
                   {/* Status indicator for user buttons */}
                   {user && (label.includes('Dashboard') || label.includes('Complete')) && (
-                    <span className={`status-dot ${
-                      hasCompletedWalletSetup ? 'green' : 'yellow'
-                    } mr-2`}></span>
+                    <span className={`status-dot ${hasCompletedWalletSetup ? 'green' : 'yellow'
+                      } mr-2`}></span>
                   )}
                   {renderButtonText(label)}
                 </motion.button>
@@ -267,8 +257,8 @@ const Header: React.FC = () => {
                 initial={{ opacity: 0, height: 0, y: -20 }}
                 animate={{ opacity: 1, height: 'auto', y: 0 }}
                 exit={{ opacity: 0, height: 0, y: -20 }}
-                transition={{ 
-                  duration: 0.4, 
+                transition={{
+                  duration: 0.4,
                   ease: 'easeInOut',
                   height: { duration: 0.4 }
                 }}
@@ -278,13 +268,12 @@ const Header: React.FC = () => {
                     key={`mobile-${label}-${index}`}
                     onClick={() => handleNavClick(label.includes('Dashboard') || label.includes('Complete') ? 'Profile' : label === 'Dashboard' ? 'Dashboard' : label)}
                     disabled={loading}
-                    className={`mobile-menu-item w-full text-left ${getProfileButtonStyle().replace('btn-sm', '')} ${
-                      loading ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
+                    className={`mobile-menu-item w-full text-left ${getProfileButtonStyle().replace('btn-sm', '')} ${loading ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
-                    transition={{ 
+                    transition={{
                       delay: index * 0.1,
                       duration: 0.3
                     }}
@@ -293,9 +282,8 @@ const Header: React.FC = () => {
                   >
                     <div className="flex items-center">
                       {user && (label.includes('Dashboard') || label.includes('Complete')) && (
-                        <span className={`status-dot ${
-                          hasCompletedWalletSetup ? 'green' : 'yellow'
-                        } mr-3`}></span>
+                        <span className={`status-dot ${hasCompletedWalletSetup ? 'green' : 'yellow'
+                          } mr-3`}></span>
                       )}
                       {renderButtonText(label)}
                     </div>
@@ -310,7 +298,7 @@ const Header: React.FC = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
-                    transition={{ 
+                    transition={{
                       delay: 0.3,
                       duration: 0.3
                     }}
@@ -328,12 +316,12 @@ const Header: React.FC = () => {
       </motion.header>
 
       {/* Modals and Flows - with proper state management */}
-      <WalletSelectionModal 
-        isOpen={walletSelectionOpen} 
-        onClose={() => setWalletSelectionOpen(false)} 
+      <WalletSelectionModal
+        isOpen={walletSelectionOpen}
+        onClose={() => setWalletSelectionOpen(false)}
       />
 
-      <OnboardingFlow 
+      <OnboardingFlow
         isOpen={onboardingOpen}
         onClose={handleOnboardingClose}
         onComplete={handleOnboardingComplete}
@@ -352,7 +340,7 @@ const Header: React.FC = () => {
             transition={{ duration: 0.3 }}
           >
             <SolanaWalletProvider>
-              <Dashboard 
+              <Dashboard
                 onBackToLanding={handleBackToLanding}
                 profileData={profileData}
               />

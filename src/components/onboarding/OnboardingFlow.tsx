@@ -96,7 +96,7 @@ export const OnboardingFlow = ({
   const renderStep = () => {
     switch (currentStep) {
       case 0: // Login/Signup step only
-        return <LoginStep onNext={handleNext} onClose={onClose} />;
+        return <LoginStep onNext={handleNext} />;
       case 1: // Claim Wallet step only
         return <ClaimWalletStep onNext={handleNext} onSkip={handleSkip} onBack={handleBack} />;
       case 2: // Connect External Wallet
@@ -124,7 +124,7 @@ export const OnboardingFlow = ({
         if (user) {
           return <ClaimWalletStep onNext={handleNext} onSkip={handleSkip} onBack={handleBack} />;
         }
-        return <LoginStep onNext={handleNext} onClose={onClose} />;
+        return <LoginStep onNext={handleNext} />;
     }
   };
 

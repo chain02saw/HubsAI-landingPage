@@ -6,10 +6,9 @@ import { signInWithBackend, signUpWithBackend } from '../../../api/authAPI';
 interface LoginStepProps {
   onNext: () => void;
   onSuccess?: () => void; // New prop for handling successful auth
-  onClose: () => void; // Add onClose prop
 }
 
-export const LoginStep: React.FC<LoginStepProps> = ({ onNext, onSuccess, onClose }) => {
+export const LoginStep: React.FC<LoginStepProps> = ({ onNext, onSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
