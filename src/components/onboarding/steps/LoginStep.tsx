@@ -58,9 +58,7 @@ export const LoginStep: React.FC<LoginStepProps> = ({ onNext, onSuccess }) => {
         return;
       }
     }
-
     setLoading(true);
-
     try {
       let result;
       if (isLogin) {
@@ -73,9 +71,9 @@ export const LoginStep: React.FC<LoginStepProps> = ({ onNext, onSuccess }) => {
         if (onSuccess) {
           onSuccess();
         } else {
-          console.log("result.result", result);
           localStorage.setItem('user', JSON.stringify(result.result));
-          onNext();
+          // onNext();
+          window.location.href = '/dashboard';
         }
       } else {
         setError(result.error || 'Authentication failed');
