@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { NFTVault } from "./NFTVault";
 import { Settings } from "./Settings";
 import { ComingSoon } from "./ComingSoon";
 import { useAuth } from "../../AuthContext";
+import { getUserNFTsWithBackend } from "../../../api/authAPI";
 
 interface DashboardProps {
   onBackToLanding: () => void;
@@ -24,6 +25,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState("vault");
   const { user, shopifyOrder, trackEvent } = useAuth();
+  const [userNFTCounts, setUserNFTCounts] = useState(0);
 
   const tabs: Tab[] = [
     {
@@ -71,6 +73,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     onBackToLanding();
   };
 
+
   const renderTabContent = () => {
     switch (activeTab) {
       case "vault":
@@ -87,6 +90,23 @@ export const Dashboard: React.FC<DashboardProps> = ({
   };
 
   const userDisplayName = profileData?.username || user?.name || "Gamer";
+
+  useEffect(() => {
+    try {
+      const getUserNFTs = async () => {
+        const user = JSON.parse(localStorage.getItem('user') || '{}').email;
+        if (!user) {
+          return;
+        }
+        const nfts = await getUserNFTsWithBackend(user);
+        console.log("🧟🧟‍♂️🧟‍♀️", nfts.result);
+        setUserNFTCounts(nfts.result.length);
+      };
+      getUserNFTs();
+    } catch (error) {
+      console.error('Error fetching NFTs', error);
+    }
+  }, []);
 
   return (
     <div className="dashboard-container bg-slate-900 text-white">
@@ -140,8 +160,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <div>
                   <p className="text-sm text-slate-400">Total NFTs</p>
                   <p className="text-2xl font-bold text-white">
-                    {shopifyOrder?.lineItems.filter((item) => item.nftEligible)
-                      .length || 3}
+                    {userNFTCounts}
                   </p>
                 </div>
                 <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
@@ -160,7 +179,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-slate-400">Daily Rewards</p>
-                  <p className="text-2xl font-bold text-white">25.8</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-bold text-white">0</span>
+                    <span className="px-2 py-0.5 text-xs font-medium bg-yellow-500/20 text-yellow-500 rounded">Soon</span>
+                  </div>
                 </div>
                 <div className="w-12 h-12 bg-yellow-500/20 rounded-lg flex items-center justify-center">
                   <span className="text-2xl">💰</span>
@@ -178,7 +200,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-slate-400">Staked NFTs</p>
-                  <p className="text-2xl font-bold text-white">2/3</p>
+                  <div className="flex items-center gap-2">
+                  <p className="text-2xl font-bold text-white">0</p>
+                    <span className="px-2 py-0.5 text-xs font-medium bg-yellow-500/20 text-yellow-500 rounded">Soon</span>
+                  </div>
                 </div>
                 <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
                   <span className="text-2xl">🔒</span>
@@ -187,7 +212,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <div className="mt-3">
                 <div className="flex items-center text-yellow-400 text-sm">
                   <span>→</span>
-                  <span className="ml-1">67% Staked</span>
+                  <span className="ml-1">0% Staked</span>
                 </div>
               </div>
             </div>
@@ -196,7 +221,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-slate-400">Total Rewards</p>
-                  <p className="text-2xl font-bold text-white">1,247</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-bold text-white">0</span>
+                    <span className="px-2 py-0.5 text-xs font-medium bg-yellow-500/20 text-yellow-500 rounded">Soon</span>
+                  </div>
                 </div>
                 <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
                   <span className="text-2xl">🎁</span>
@@ -225,11 +253,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <motion.button
                 key={tab.id}
                 onClick={() => handleTabChange(tab.id)}
-                className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded-lg transition-all relative group ${
-                  activeTab === tab.id
-                    ? "bg-blue-600 text-white shadow-lg"
-                    : "text-slate-400 hover:text-white hover:bg-slate-700"
-                }`}
+                className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded-lg transition-all relative group ${activeTab === tab.id
+                  ? "bg-blue-600 text-white shadow-lg"
+                  : "text-slate-400 hover:text-white hover:bg-slate-700"
+                  }`}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 initial={{ opacity: 0, y: 20 }}

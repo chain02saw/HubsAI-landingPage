@@ -694,9 +694,9 @@ const NFTVaultContent = () => {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-white">Your NFT Collection</h2>
         <div className="flex items-center space-x-4">
-          <span className="text-sm text-gray-400">Total Staked: 2/3</span>
+          <span className="text-sm text-gray-400">Total Staked: 0</span>
           <span className="text-sm text-green-400">
-            Daily Rewards: ~17.6 HUBS
+            Daily Rewards: <p className="text-yellow-400">Coming Soon</p>
           </span>
         </div>
       </div>

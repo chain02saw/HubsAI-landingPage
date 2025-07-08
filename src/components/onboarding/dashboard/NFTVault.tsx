@@ -172,6 +172,7 @@ export const NFTVault: React.FC = React.memo(() => {
           return;
         }
         const nfts = await getUserNFTsWithBackend(user);
+        console.log("🧟🧟‍♂️🧟‍♀️", nfts.result);
         setUserNFTs(nfts.result);
       };
       getUserNFTs();

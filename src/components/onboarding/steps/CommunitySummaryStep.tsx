@@ -1,8 +1,9 @@
 // src/components/onboarding/steps/CommunitySummaryStep.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { getUserNFTsWithBackend } from '../../../api/authAPI';
 
 interface CommunitySummaryStepProps {
   profileData: any;
@@ -32,89 +33,90 @@ export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ prof
   const navigate = useNavigate();
   const [airdropClaimed, setAirdropClaimed] = useState(false);
   const [isClaimingAirdrop, setIsClaimingAirdrop] = useState(false);
+  const [userNFTCounts, setUserNFTCounts] = useState(0);
 
   const mockNFTs: NFT[] = [
-    { 
-      id: 1, 
-      name: 'HubsAI Genesis', 
-      image: '/assets/hubsai-logo.png', 
+    {
+      id: 1,
+      name: 'HubsAI Genesis',
+      image: '/assets/hubsai-logo.png',
       rarity: 'Legendary',
-      stakingRewards: '12.5 HUBS/day',
+      stakingRewards: '0 HUBS/day',
       isStaked: false
     },
-    { 
-      id: 2, 
-      name: 'Retail Pioneer', 
-      image: '/assets/hubsai-logo.png', 
+    {
+      id: 2,
+      name: 'Retail Pioneer',
+      image: '/assets/hubsai-logo.png',
       rarity: 'Rare',
-      stakingRewards: '8.2 HUBS/day',
+      stakingRewards: '0 HUBS/day',
       isStaked: false
     }
   ];
 
   // Updated with real brand partners and their logos
   const topBrands: Brand[] = [
-    { 
-      name: 'Nike', 
-      reward: '5% cashback', 
+    {
+      name: 'Nike',
+      reward: '5% cashback',
       logo: 'https://1000logos.net/wp-content/uploads/2021/11/Nike-Logo-500x281.png',
-      category: 'Fashion & Sports', 
+      category: 'Fashion & Sports',
       tier: 'Gold',
       description: 'Premium athletic wear and footwear'
     },
-    { 
-      name: 'Apple', 
-      reward: '3% rewards', 
+    {
+      name: 'Apple',
+      reward: '3% rewards',
       logo: 'https://1000logos.net/wp-content/uploads/2016/10/Apple-Logo-500x281.png',
-      category: 'Technology', 
+      category: 'Technology',
       tier: 'Gold',
       description: 'Innovation in technology and design'
     },
-    { 
-      name: 'Amazon', 
-      reward: '2% back', 
+    {
+      name: 'Amazon',
+      reward: '2% back',
       logo: 'https://1000logos.net/wp-content/uploads/2016/10/Amazon-Logo-500x281.png',
-      category: 'E-commerce', 
+      category: 'E-commerce',
       tier: 'Silver',
       description: 'Everything from A to Z'
     },
-    { 
-      name: 'Starbucks', 
-      reward: '4% rewards', 
+    {
+      name: 'Starbucks',
+      reward: '4% rewards',
       logo: 'https://1000logos.net/wp-content/uploads/2020/05/Starbucks-Logo-500x281.png',
-      category: 'Food & Beverage', 
+      category: 'Food & Beverage',
       tier: 'Gold',
       description: 'Premium coffee and beverages'
     },
-    { 
-      name: 'Tesla', 
-      reward: '3% back', 
+    {
+      name: 'Tesla',
+      reward: '3% back',
       logo: 'https://1000logos.net/wp-content/uploads/2018/03/Tesla-Logo-500x281.png',
-      category: 'Automotive', 
+      category: 'Automotive',
       tier: 'Gold',
       description: 'Electric vehicles and clean energy'
     },
-    { 
-      name: 'Microsoft', 
-      reward: '2.5% rewards', 
+    {
+      name: 'Microsoft',
+      reward: '2.5% rewards',
       logo: 'https://1000logos.net/wp-content/uploads/2020/08/Microsoft-Logo-500x281.png',
-      category: 'Technology', 
+      category: 'Technology',
       tier: 'Silver',
       description: 'Cloud computing and productivity tools'
     },
-    { 
-      name: 'Adidas', 
-      reward: '4% cashback', 
+    {
+      name: 'Adidas',
+      reward: '4% cashback',
       logo: 'https://1000logos.net/wp-content/uploads/2019/06/Adidas-Logo-500x281.png',
-      category: 'Fashion & Sports', 
+      category: 'Fashion & Sports',
       tier: 'Gold',
       description: 'Sports apparel and lifestyle products'
     },
-    { 
-      name: 'Best Buy', 
-      reward: '2% back', 
+    {
+      name: 'Best Buy',
+      reward: '2% back',
       logo: 'https://1000logos.net/wp-content/uploads/2016/10/Best-Buy-Logo-500x281.png',
-      category: 'Electronics', 
+      category: 'Electronics',
       tier: 'Silver',
       description: 'Consumer electronics and technology'
     }
@@ -122,12 +124,12 @@ export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ prof
 
   const handleClaimAirdrop = async () => {
     setIsClaimingAirdrop(true);
-    
+
     // Simulate claiming process
     setTimeout(() => {
       setAirdropClaimed(true);
       setIsClaimingAirdrop(false);
-      
+
       // Open airdrop link in new tab so user doesn't lose their progress
       window.open('https://community.hubsai.io/', '_blank');
     }, 2000);
@@ -141,6 +143,23 @@ export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ prof
   const totalDailyRewards = mockNFTs.reduce((total, nft) => {
     return total + parseFloat(nft.stakingRewards.split(' ')[0]);
   }, 0);
+
+  useEffect(() => {
+    try {
+      const getUserNFTs = async () => {
+        const user = JSON.parse(localStorage.getItem('user') || '{}').email;
+        if (!user) {
+          return;
+        }
+        const nfts = await getUserNFTsWithBackend(user);
+        console.log("🧟🧟‍♂️🧟‍♀️", nfts.result);
+        setUserNFTCounts(nfts.result.length);
+      };
+      getUserNFTs();
+    } catch (error) {
+      console.error('Error fetching NFTs', error);
+    }
+  }, []);
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -185,7 +204,9 @@ export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ prof
               Your NFT Collection
             </h3>
             <span className="text-sm text-primary-400 bg-primary-500/20 px-4 py-1.5 rounded-full whitespace-nowrap min-w-[100px] text-center">
-              {mockNFTs.length} NFTs Ready
+              {userNFTCounts} NFTs Ready
+          <span className="px-2 py-0.5 text-xs font-medium bg-yellow-500/20 text-yellow-500 rounded">Soon</span>
+
             </span>
           </div>
 
@@ -204,15 +225,14 @@ export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ prof
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-1">
                     <p className="font-semibold text-white">{nft.name}</p>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      nft.rarity === 'Legendary' ? 'bg-yellow-500/20 text-yellow-400' :
+                    <span className={`text-xs px-2 py-1 rounded-full ${nft.rarity === 'Legendary' ? 'bg-yellow-500/20 text-yellow-400' :
                       nft.rarity === 'Rare' ? 'bg-purple-500/20 text-purple-400' :
-                      'bg-blue-500/20 text-blue-400'
-                    }`}>
+                        'bg-blue-500/20 text-blue-400'
+                      }`}>
                       {nft.rarity}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-400 mb-1">Daily Rewards: {nft.stakingRewards}</p>
+                  <p className="text-sm text-gray-400 mb-1">Daily Rewards: <p className="text-yellow-400">Coming Soon</p></p>
                   <div className="flex items-center space-x-2">
                     <span className="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-400 border border-green-500/30">
                       ⚡ Ready to Stake
@@ -243,7 +263,9 @@ export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ prof
               Brand Partners
             </h3>
             <span className="text-sm text-yellow-400 bg-yellow-500/20 px-4 py-1.5 rounded-full whitespace-nowrap min-w-[100px] text-center">
-              {topBrands.length} Partners
+              {0} Partners
+              <span className="px-2 py-0.5 text-xs font-medium bg-yellow-500/20 text-yellow-500 rounded">Soon</span>
+
             </span>
           </div>
 
@@ -257,8 +279,8 @@ export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ prof
                 transition={{ delay: 0.5 + index * 0.05 }}
               >
                 <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center p-1">
-                  <img 
-                    src={brand.logo} 
+                  <img
+                    src={brand.logo}
                     alt={`${brand.name} logo`}
                     className="w-full h-full object-contain"
                     onError={(e) => {
@@ -275,11 +297,10 @@ export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ prof
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center space-x-2 mb-1">
                     <p className="font-medium text-white truncate">{brand.name}</p>
-                    <span className={`text-xs px-2 py-1 rounded-full flex-shrink-0 ${
-                      brand.tier === 'Gold' ? 'bg-yellow-500/20 text-yellow-400' :
+                    <span className={`text-xs px-2 py-1 rounded-full flex-shrink-0 ${brand.tier === 'Gold' ? 'bg-yellow-500/20 text-yellow-400' :
                       brand.tier === 'Silver' ? 'bg-gray-400/20 text-gray-400' :
-                      'bg-orange-500/20 text-orange-400'
-                    }`}>
+                        'bg-orange-500/20 text-orange-400'
+                      }`}>
                       {brand.tier}
                     </span>
                   </div>
@@ -301,19 +322,26 @@ export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ prof
         transition={{ delay: 0.6 }}
       >
         <div className="glass rounded-xl p-4 text-center">
-          <div className="text-2xl font-bold text-primary-400">{mockNFTs.length}</div>
+          <div className="text-2xl font-bold text-primary-400">0</div>
+          <span className="px-2 py-0.5 text-xs font-medium bg-yellow-500/20 text-yellow-500 rounded">Soon</span>
           <div className="text-sm text-gray-400">NFTs Ready</div>
         </div>
         <div className="glass rounded-xl p-4 text-center">
-          <div className="text-2xl font-bold text-yellow-400">{topBrands.length}</div>
+          <div className="text-2xl font-bold text-yellow-400">{0}</div>
+          <span className="px-2 py-0.5 text-xs font-medium bg-yellow-500/20 text-yellow-500 rounded">Soon</span>
+
           <div className="text-sm text-gray-400">Brand Partners</div>
         </div>
         <div className="glass rounded-xl p-4 text-center">
-          <div className="text-2xl font-bold text-green-400">{totalDailyRewards.toFixed(1)}</div>
+          <div className="text-2xl font-bold text-green-400">{0}</div>
+          <span className="px-2 py-0.5 text-xs font-medium bg-yellow-500/20 text-yellow-500 rounded">Soon</span>
+
           <div className="text-sm text-gray-400">Daily HUBS</div>
         </div>
         <div className="glass rounded-xl p-4 text-center">
           <div className="text-2xl font-bold text-purple-400">∞</div>
+          <span className="px-2 py-0.5 text-xs font-medium bg-yellow-500/20 text-yellow-500 rounded">Soon</span>
+
           <div className="text-sm text-gray-400">Possibilities</div>
         </div>
       </motion.div>
@@ -330,14 +358,14 @@ export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ prof
           <p className="text-gray-300 mb-6">
             Welcome to the future of retail rewards. You can claim your community airdrop and start staking immediately!
           </p>
-          
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-2xl mx-auto">
             {/* Enhanced Airdrop Button */}
             <motion.button
               onClick={handleClaimAirdrop}
               disabled={isClaimingAirdrop}
               className="flex-1 relative overflow-hidden px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 disabled:opacity-70 text-white font-bold rounded-xl transition-all duration-300 border border-yellow-400/50 shadow-lg group"
-              whileHover={{ 
+              whileHover={{
                 scale: 1.02,
                 boxShadow: "0 0 40px rgba(255, 193, 7, 0.6)"
               }}
@@ -345,7 +373,7 @@ export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ prof
             >
               {/* Shimmer effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-              
+
               <div className="relative flex items-center justify-center gap-2">
                 {isClaimingAirdrop ? (
                   <>
@@ -365,12 +393,12 @@ export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ prof
                 )}
               </div>
             </motion.button>
-            
+
             {/* Enhanced Staking Button */}
             <motion.button
               onClick={handleStartStaking}
               className="flex-1 relative overflow-hidden px-8 py-4 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-400 hover:to-primary-500 text-white font-bold rounded-xl transition-all duration-300 border border-primary-400/50 shadow-lg group"
-              whileHover={{ 
+              whileHover={{
                 scale: 1.02,
                 boxShadow: "0 0 40px rgba(20, 184, 166, 0.6)"
               }}
@@ -378,7 +406,7 @@ export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ prof
             >
               {/* Shimmer effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-              
+
               <div className="relative flex items-center justify-center gap-2">
                 <span className="text-lg">⚡</span>
                 <span>Start Staking & Earning</span>
