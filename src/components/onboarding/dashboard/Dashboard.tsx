@@ -77,7 +77,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const renderTabContent = () => {
     switch (activeTab) {
       case "vault":
-        return <NFTVault />;
+        return <NFTVault onNFTCountChange={setUserNFTCounts} />;
       case "settings":
         return <Settings profileData={profileData} />;
       default:
@@ -99,7 +99,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
           return;
         }
         const nfts = await getUserNFTsWithBackend(user);
-        console.log("🧟🧟‍♂️🧟‍♀️", nfts.result);
         setUserNFTCounts(nfts.result.length);
       };
       getUserNFTs();

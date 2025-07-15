@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../AuthContext';
 import { useWallet } from '@solana/wallet-adapter-react';
@@ -9,9 +9,9 @@ interface SettingsProps {
 }
 
 export const Settings: React.FC<SettingsProps> = ({ }) => {
-  const { claimWalletAddress, signOut, trackEvent } = useAuth();
   const { connected, publicKey, wallet, disconnect } = useWallet();
 
+  const { signOut, trackEvent } = useAuth();
   const [activeSection, setActiveSection] = useState('profile');
   const [editMode, setEditMode] = useState(false);
   const [fullName, setFullName] = useState(JSON.parse(localStorage.getItem('user') || '{}').fullname || '');
@@ -20,11 +20,7 @@ export const Settings: React.FC<SettingsProps> = ({ }) => {
   const [country, setCountry] = useState(JSON.parse(localStorage.getItem('user') || '{}').country || '');
   const [notifications, setNotifications] = useState(JSON.parse(localStorage.getItem('user') || '{}').notifications || {});
   const [privacy, setPrivacy] = useState(JSON.parse(localStorage.getItem('user') || '{}').privacy || {});
-
-  console.log('1️⃣1️⃣1️⃣1️⃣1️⃣fullName', JSON.parse(localStorage.getItem('user') || '{}').fullname);
-  console.log('1️⃣1️⃣1️⃣1️⃣1️⃣username', JSON.parse(localStorage.getItem('user') || '{}').username);
-  console.log('1️⃣1️⃣1️⃣1️⃣1️⃣email', JSON.parse(localStorage.getItem('user') || '{}').email);
-  console.log('1️⃣1️⃣1️⃣1️⃣1️⃣country', JSON.parse(localStorage.getItem('user') || '{}').country);
+  const [claimWalletAddress, setClaimWalletAddress] = useState('');
 
 
   const sections = [
@@ -65,6 +61,20 @@ export const Settings: React.FC<SettingsProps> = ({ }) => {
       console.error('Error updating user profile:', error);
     }
   };
+
+  useEffect(() => {
+    try {
+      const userData = JSON.parse(localStorage.getItem('user') || '{}');
+      // Check if userData has walletaddress either directly or nested
+      const walletAddress = userData?.walletaddress || userData?.user?.walletaddress || '';
+      if (walletAddress) {
+        setClaimWalletAddress(walletAddress);
+      }
+    } catch (error) {
+      console.error('Error parsing user data from localStorage:', error);
+    }
+  }, []);
+
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -280,12 +290,11 @@ export const Settings: React.FC<SettingsProps> = ({ }) => {
       {/* Wallet Tips */}
       <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl mt-4">
         <h4 className="text-white font-semibold mb-2">💡 Wallet Tips</h4>
-        <ul className="text-sm text-slate-300 space-y-1">
-          <li>• Your claim wallet is automatically backed up to your email</li>
-          <li>• External wallets give you full control over your private keys</li>
-          <li>• You can use multiple wallets simultaneously</li>
-          <li>• Always verify wallet addresses before transactions</li>
-        </ul>
+        {claimWalletAddress && (
+          <ul className="text-sm text-slate-300 space-y-1">
+            <li>• Your claim wallet ({claimWalletAddress.slice(0, 6)}...{claimWalletAddress.slice(-4)}) is automatically backed up to your email</li>
+          </ul>
+        )}
       </div>
     </div>
   );

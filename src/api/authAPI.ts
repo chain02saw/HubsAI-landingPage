@@ -29,7 +29,6 @@ export const getUserClaimWalletAddress = async (email: string) => {
 
 export const setupUserProfile = async (userData: any) => {
     try {
-        console.log('1️⃣1️⃣1️⃣1️⃣1️⃣userData', userData);
         const response = await axios.post(`${backendUrl}/api/auth/setup-profile`, userData);
         return response.data;
     } catch (error) {

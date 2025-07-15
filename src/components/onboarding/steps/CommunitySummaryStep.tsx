@@ -152,7 +152,6 @@ export const CommunitySummaryStep: React.FC<CommunitySummaryStepProps> = ({ prof
           return;
         }
         const nfts = await getUserNFTsWithBackend(user);
-        console.log("🧟🧟‍♂️🧟‍♀️", nfts.result);
         setUserNFTCounts(nfts.result.length);
       };
       getUserNFTs();

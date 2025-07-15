@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../AuthContext';
 import { getUserNFTsWithBackend } from '../../../api/authAPI';
+import { transferNFT } from '../../../api/nftAPI';
 
 interface NFT {
   id: number;
@@ -14,6 +15,10 @@ interface NFT {
   quantity: number;
   symbol: string;
   description: string;
+}
+
+interface NFTVaultProps {
+  onNFTCountChange?: (count: number) => void;
 }
 
 const RARITY_STYLES = {
@@ -157,12 +162,15 @@ const FilterButtons: React.FC<{
 ));
 FilterButtons.displayName = 'FilterButtons';
 
-export const NFTVault: React.FC = React.memo(() => {
+export const NFTVault: React.FC<NFTVaultProps> = React.memo(({ onNFTCountChange }) => {
   const { trackEvent } = useAuth();
   const [selectedNFT, setSelectedNFT] = useState<NFT | null>(null);
   const [filter, setFilter] = useState<string>('all');
   const [userNFTs, setUserNFTs] = useState<any[]>([]);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [transferAddress, setTransferAddress] = useState('');
+  const [isTransferring, setIsTransferring] = useState(false);
+  const [showTransfer, setShowTransfer] = useState(false);
 
   useEffect(() => {
     try {
@@ -172,14 +180,14 @@ export const NFTVault: React.FC = React.memo(() => {
           return;
         }
         const nfts = await getUserNFTsWithBackend(user);
-        console.log("🧟🧟‍♂️🧟‍♀️", nfts.result);
         setUserNFTs(nfts.result);
+        onNFTCountChange?.(nfts.result.length);
       };
       getUserNFTs();
     } catch (error) {
       console.error('Error fetching NFTs', error);
     }
-  }, []);
+  }, [onNFTCountChange]);
 
   const handleStakeToggle = useCallback(
     (nftId: number) => {
@@ -213,6 +221,26 @@ export const NFTVault: React.FC = React.memo(() => {
       }
     }
   }, [selectedNFT, trackEvent]);
+
+  const handleTransfer = useCallback(async () => {
+    if (!transferAddress || !selectedNFT) return;
+    
+    setIsTransferring(true);
+    try {
+      const userEmail = JSON.parse(localStorage.getItem('user') || '{}').email; 
+      const response = await transferNFT(transferAddress, selectedNFT.mintAddress, userEmail);
+      setIsTransferring(false);
+      handleCloseModal();
+      
+      // Update NFT list and count after successful transfer
+      const updatedNFTs = userNFTs.filter(nft => nft.mintAddress !== selectedNFT.mintAddress);
+      setUserNFTs(updatedNFTs);
+      onNFTCountChange?.(updatedNFTs.length);
+    } catch (error) {
+      console.error('Transfer failed:', error);
+      setIsTransferring(false);
+    }
+  }, [transferAddress, selectedNFT, userNFTs, onNFTCountChange, handleCloseModal]);
 
   return (
     <div>
@@ -377,20 +405,78 @@ export const NFTVault: React.FC = React.memo(() => {
                     </div>
                   </div>
 
-                  <motion.button
-                    onClick={() => {
-                      handleStakeToggle(selectedNFT.id);
-                      handleCloseModal();
-                    }}
-                    className={`w-full py-3 rounded-xl font-bold transition-all ${selectedNFT.isStaked
-                      ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30'
-                      : 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border border-blue-500/30'
-                      }`}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    {selectedNFT.isStaked ? 'Unstake NFT' : 'Stake NFT'}
-                  </motion.button>
+                  <div className="space-y-4">
+                    {!showTransfer ? (
+                      <div className="flex gap-2">
+                        <motion.button
+                          onClick={() => {
+                            handleStakeToggle(selectedNFT.id);
+                            handleCloseModal();
+                          }}
+                          className={`flex-1 py-3 rounded-xl font-bold transition-all ${
+                            selectedNFT.isStaked
+                              ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30'
+                              : 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border border-blue-500/30'
+                          }`}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          {selectedNFT.isStaked ? 'Unstake NFT' : 'Stake NFT'}
+                        </motion.button>
+                        <motion.button
+                          onClick={() => setShowTransfer(true)}
+                          className="py-3 px-6 rounded-xl font-bold transition-all bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 border border-purple-500/30"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          Transfer
+                        </motion.button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium text-slate-400">
+                            Recipient Wallet Address
+                          </label>
+                          <input
+                            type="text"
+                            value={transferAddress}
+                            onChange={(e) => setTransferAddress(e.target.value)}
+                            placeholder="Enter wallet address"
+                            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-purple-500"
+                            disabled={isTransferring}
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <motion.button
+                            onClick={handleTransfer}
+                            disabled={isTransferring || !transferAddress}
+                            className={`flex-1 py-3 rounded-xl font-bold transition-all ${
+                              isTransferring
+                                ? 'bg-slate-600 text-slate-400 cursor-not-allowed'
+                                : 'bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 border border-purple-500/30'
+                            }`}
+                            whileHover={!isTransferring ? { scale: 1.02 } : {}}
+                            whileTap={!isTransferring ? { scale: 0.98 } : {}}
+                          >
+                            {isTransferring ? 'Processing Transfer...' : 'Confirm Transfer'}
+                          </motion.button>
+                          <motion.button
+                            onClick={() => {
+                              setShowTransfer(false);
+                              setTransferAddress('');
+                            }}
+                            disabled={isTransferring}
+                            className="py-3 px-6 rounded-xl font-bold transition-all bg-slate-600/20 text-slate-400 hover:bg-slate-600/30 border border-slate-600/30"
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            Cancel
+                          </motion.button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </motion.div>
