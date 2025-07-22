@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../AuthContext';
 import { getUserNFTsWithBackend } from '../../../api/authAPI';
-import { transferNFT } from '../../../api/nftAPI';
+// import { transferNFT } from '../../../api/nftAPI';
 
 interface NFT {
   id: number;
@@ -227,8 +227,8 @@ export const NFTVault: React.FC<NFTVaultProps> = React.memo(({ onNFTCountChange 
     
     setIsTransferring(true);
     try {
-      const userEmail = JSON.parse(localStorage.getItem('user') || '{}').email; 
-      const response = await transferNFT(transferAddress, selectedNFT.mintAddress, userEmail);
+      // const userEmail = JSON.parse(localStorage.getItem('user') || '{}').email; 
+      // const response = await transferNFT(transferAddress, selectedNFT.mintAddress, userEmail);
       setIsTransferring(false);
       handleCloseModal();
       

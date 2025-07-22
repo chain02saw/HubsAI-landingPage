@@ -100,7 +100,7 @@ const Header: React.FC = () => {
     } else if (label === 'Dashboard') {
       window.location.href = '/dashboard';
     } else if (label === 'Docs - coming soon') {
-      console.log('Navigate to docs');
+      window.open('https://hubsai.gitbook.io/hubsai-docs/', '_blank');
     } else if (label === 'AI Ty - coming soon') {
       console.log('Navigate to AI Ty');
     }
