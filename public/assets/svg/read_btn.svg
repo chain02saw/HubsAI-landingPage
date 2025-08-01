@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 213.11 70.49">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: none;
+        stroke: url(#HubsAI_Gradient);
+        stroke-miterlimit: 10;
+        stroke-width: .96px;
+      }
+    </style>
+    <linearGradient id="HubsAI_Gradient" data-name="HubsAI Gradient" x1="0" y1="35.24" x2="213.11" y2="35.24" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#37f9e2"/>
+      <stop offset="1" stop-color="#209385"/>
+    </linearGradient>
+  </defs>
+  <g id="Artwork">
+    <rect class="cls-1" x=".48" y=".48" width="212.15" height="69.53" rx="9.52" ry="9.52"/>
+  </g>
+</svg>
